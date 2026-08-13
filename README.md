@@ -23,6 +23,6 @@ This is not just a basic RAG demo. It is meant to show that I can build retrieva
 - Python
 - Neo4j
 - LangChain
-- Claude API
+- Gemini API
 - pgvector
 - FastAPI

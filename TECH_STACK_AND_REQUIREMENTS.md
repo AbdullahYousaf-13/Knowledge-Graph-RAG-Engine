@@ -7,7 +7,7 @@
 - Python
 - FastAPI
 - LangChain
-- Claude API
+- Gemini API
 
 ### Knowledge graph
 
@@ -69,5 +69,5 @@
 ## Optional Dependencies
 
 - Docker for local development
-- OpenAI-compatible API tooling if needed for integration
+- API client tooling for Gemini integration if needed
 - Monitoring or logging tools for debugging and performance tracking
