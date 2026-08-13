@@ -26,16 +26,9 @@
 - Citation validation
 - Hybrid answer assembly
 
-### Evaluation and benchmarking
-
-- Labeled question sets
-- Accuracy measurement by hop count
-- Latency tracking
-- Cost tracking
-
 ## Functional Requirements
 
-- Extract entities and relationships from a real document corpus.
+- Extract entities and relationships from SEC filings.
 - Store graph data in Neo4j with source chunk references.
 - Store embeddings for the same chunks in pgvector.
 - Resolve entity duplicates so one real-world entity maps to one node.
@@ -46,14 +39,12 @@
 ## Non-Functional Requirements
 
 - The ingestion pipeline should be idempotent.
-- Retrieval should be measurable before routing is added.
 - Graph queries should be parameterized, not generated as raw Cypher by the model.
 - Every answer should be grounded in retrievable source data.
-- The system should support benchmarking and repeatable evaluation.
 
 ## Data Requirements
 
-- A real corpus with meaningful relationships.
+- A small corpus of SEC filings with meaningful relationships.
 - Documents that can be chunked into traceable segments.
 - Enough labeled questions to test single-hop, multi-hop, and out-of-scope queries.
 - Metadata for each chunk, including document id and source reference.
@@ -64,7 +55,6 @@
 - A pgvector-backed embedding index
 - A FastAPI endpoint for question answering
 - Citation-backed answers
-- A benchmark table comparing hybrid RAG vs vector-only RAG
 
 ## Optional Dependencies
 

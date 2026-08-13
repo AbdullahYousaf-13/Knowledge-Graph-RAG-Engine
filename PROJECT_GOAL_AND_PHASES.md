@@ -2,9 +2,9 @@
 
 ## Goal
 
-This project is a hybrid knowledge graph RAG system for enterprise data.
+This project is a hybrid knowledge graph RAG system built over SEC filings.
 
-The goal is to answer questions that need more than basic vector search, especially multi-hop questions that depend on relationships between entities spread across multiple documents.
+The goal is to answer multi-hop questions by combining graph retrieval and vector retrieval with citations.
 
 In practice, the system should:
 
@@ -15,16 +15,11 @@ In practice, the system should:
 - return citations for every claim
 - benchmark the system against a vector-only baseline
 
-## Why this project matters
-
-This project shows the difference between standard RAG and retrieval that can reason across connected business data.
-It is meant to demonstrate that the system can handle relationship-heavy questions, not just isolated fact lookup.
-
 ## Project Phases
 
 ### Phase 1: Extract entities and relationships into Neo4j
 
-- Choose a corpus with real relationships, such as SEC filings, internal docs, research papers, or product documentation.
+- Choose a small set of SEC filings from the public EDGAR data source.
 - Define a limited ontology before coding.
 - Chunk documents and extract structured entities and relationships.
 - Resolve duplicate entities so the same real-world item becomes one graph node.
@@ -60,4 +55,4 @@ It is meant to demonstrate that the system can handle relationship-heavy questio
 
 ## Done When
 
-The project is complete when a FastAPI endpoint can answer questions with validated citations and the README shows a benchmark table proving the hybrid approach against a vector-only baseline.
+The project is complete when a FastAPI endpoint can answer questions with validated citations and the README shows a benchmark table proving the hybrid approach against a vector-only baseline on SEC filings.
