@@ -19,6 +19,21 @@ NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
 NEO4J_DATABASE = os.getenv("NEO4J_DATABASE", "neo4j")
 DRY_RUN = os.getenv("DRY_RUN", "0") == "1"
+CLEAN_EXISTING = os.getenv("CLEAN_EXISTING", "0") == "1"
+
+SECTION_TITLE_BLACKLIST = {
+    "business",
+    "risk factors",
+    "unresolved staff comments",
+    "properties",
+    "legal proceedings",
+    "mine safety disclosures",
+    "management's discussion and analysis of financial condition and results of operations",
+    "market for registrants common equity, related stockholder matters and issuer purchases of equity securities",
+    "financial statements and supplementary data",
+    "controls and procedures",
+    "quantitative and qualitative disclosures about market risk",
+}
 
 
 def load_records(path: Path) -> list[dict[str, Any]]:
@@ -63,6 +78,33 @@ def entity_key(name: str) -> str:
     return slugify(name)
 
 
+def normalize_text(value: str) -> str:
+    value = value.strip().lower()
+    value = re.sub(r"\s+", " ", value)
+    value = value.replace("\u2019", "'")
+    return value
+
+
+def normalize_relation_type(value: str) -> str:
+    value = normalize_text(value).upper()
+    value = re.sub(r"[^A-Z0-9]+", "_", value)
+    value = re.sub(r"_+", "_", value).strip("_")
+    return value or "RELATED_TO"
+
+
+def is_section_title_entity_name(name: str) -> bool:
+    normalized = normalize_text(name)
+    if not normalized:
+        return True
+    if normalized in SECTION_TITLE_BLACKLIST:
+        return True
+    if normalized.startswith("item ") or normalized.startswith("part "):
+        return True
+    if normalized in {"business", "risk factors", "legal proceedings", "properties", "mine safety disclosures"}:
+        return True
+    return False
+
+
 def ensure_constraints(tx) -> None:
     statements = [
         "CREATE CONSTRAINT filing_source_url IF NOT EXISTS FOR (f:Filing) REQUIRE f.source_url IS UNIQUE",
@@ -71,6 +113,27 @@ def ensure_constraints(tx) -> None:
     ]
     for cypher in statements:
         tx.run(cypher)
+
+
+def clean_existing_graph(tx) -> None:
+    tx.run(
+        """
+        MATCH ()-[r:RELATED_TO]->()
+        SET r.relation_type = replace(replace(toUpper(r.relation_type), '-', '_'), ' ', '_')
+        """
+    )
+    tx.run(
+        """
+        MATCH (e:Entity)
+        WHERE e.entity_type = 'Other' AND (
+            toLower(e.name) IN $blacklist
+            OR toLower(e.name) STARTS WITH 'item '
+            OR toLower(e.name) STARTS WITH 'part '
+        )
+        DETACH DELETE e
+        """,
+        blacklist=sorted(SECTION_TITLE_BLACKLIST),
+    )
 
 
 def upsert_filing(tx, record: dict[str, Any]) -> None:
@@ -140,17 +203,18 @@ def upsert_entity(tx, entity: dict[str, Any], record: dict[str, Any]) -> None:
 def upsert_relationship(tx, relationship: dict[str, Any], record: dict[str, Any]) -> None:
     source_key = entity_key(relationship["source_entity"])
     target_key = entity_key(relationship["target_entity"])
-    relation_type = slugify(relationship["relation_type"]).upper() or "RELATED_TO"
+    relation_type = normalize_relation_type(relationship["relation_type"])
 
     tx.run(
         """
         MATCH (source:Entity {entity_key: $source_key})
         MATCH (target:Entity {entity_key: $target_key})
-        MERGE (source)-[r:RELATED_TO {relation_type: $relation_type, source_chunk_id: $source_chunk_id}]->(target)
+        MERGE (source)-[r:RELATED_TO {source_chunk_id: $source_chunk_id}]->(target)
         SET r.description = $description,
             r.confidence = $confidence,
             r.company = $company,
             r.filing_year = $filing_year,
+            r.relation_type = $relation_type,
             r.updated_at = datetime()
         """,
         source_key=source_key,
@@ -169,6 +233,8 @@ def ingest_records(driver, records: list[dict[str, Any]]) -> Counter:
     chunk_metadata = load_chunk_metadata(CHUNKS_PATH)
     with driver.session(database=NEO4J_DATABASE) as session:
         session.execute_write(ensure_constraints)
+        if CLEAN_EXISTING:
+            session.execute_write(clean_existing_graph)
 
         for record in records:
             full_record = enrich_record(record, chunk_metadata.get(record["chunk_id"]))

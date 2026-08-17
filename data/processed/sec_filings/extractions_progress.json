@@ -1,0 +1,202 @@
+{
+  "apple-inc-2021-0008": {
+    "status": "failed",
+    "attempts": 6,
+    "error": "429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3-flash\\nPlease retry in 35.952489908s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '35s'}]}}"
+  },
+  "apple-inc-2021-0009": {
+    "status": "failed",
+    "attempts": 6,
+    "error": "429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3-flash\\nPlease retry in 35.604510371s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'model': 'gemini-3-flash', 'location': 'global'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '35s'}]}}"
+  },
+  "apple-inc-2021-0010": {
+    "status": "failed",
+    "attempts": 6,
+    "error": "429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3-flash\\nPlease retry in 37.981502447s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '37s'}]}}"
+  },
+  "apple-inc-2021-0011": {
+    "status": "failed",
+    "attempts": 6,
+    "error": "429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3-flash\\nPlease retry in 37.738953212s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '37s'}]}}"
+  },
+  "apple-inc-2021-0012": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2021-0013": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2021-0014": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2021-0015": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2021-0016": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2021-0017": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2021-0018": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2021-0019": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2021-0020": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2021-0021": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2021-0022": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2021-0023": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2021-0024": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2021-0025": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2021-0026": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2021-0027": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2021-0028": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2021-0029": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2021-0030": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2021-0031": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2021-0032": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2021-0033": {
+    "status": "completed",
+    "attempts": 2,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2021-0034": {
+    "status": "completed",
+    "attempts": 2,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2021-0035": {
+    "status": "failed",
+    "attempts": 6,
+    "error": "429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3-flash\\nPlease retry in 37.102015136s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '37s'}]}}"
+  },
+  "apple-inc-2021-0036": {
+    "status": "completed",
+    "attempts": 6,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2021-0037": {
+    "status": "failed",
+    "attempts": 6,
+    "error": "429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3-flash\\nPlease retry in 34.759829543s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '34s'}]}}"
+  },
+  "apple-inc-2021-0038": {
+    "status": "failed",
+    "attempts": 1,
+    "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash-lite is no longer available to new users. Please update your code to use a newer model for the latest features and improvements. We recommend you to use the Interactions API (https://ai.google.dev/gemini-api/docs/migrate-to-interactions).', 'status': 'NOT_FOUND'}}"
+  },
+  "apple-inc-2021-0039": {
+    "status": "failed",
+    "attempts": 1,
+    "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash-lite is no longer available to new users. Please update your code to use models/gemini-3.5-flash-lite for the latest features and improvements.', 'status': 'NOT_FOUND'}}"
+  },
+  "apple-inc-2021-0040": {
+    "status": "failed",
+    "attempts": 1,
+    "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash-lite is no longer available to new users. Please update your code to use a newer model for the latest features and improvements. We recommend you to use the Interactions API (https://ai.google.dev/gemini-api/docs/migrate-to-interactions).', 'status': 'NOT_FOUND'}}"
+  },
+  "apple-inc-2021-0043": {
+    "status": "failed",
+    "attempts": 1,
+    "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash-lite is no longer available to new users. Please update your code to use models/gemini-3.5-flash-lite for the latest features and improvements.', 'status': 'NOT_FOUND'}}"
+  },
+  "apple-inc-2021-0044": {
+    "status": "failed",
+    "attempts": 1,
+    "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash-lite is no longer available to new users. Please update your code to use a newer model for the latest features and improvements. We recommend you to use the Interactions API (https://ai.google.dev/gemini-api/docs/migrate-to-interactions).', 'status': 'NOT_FOUND'}}"
+  },
+  "apple-inc-2021-0045": {
+    "status": "failed",
+    "attempts": 1,
+    "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash-lite is no longer available to new users. Please update your code to use a newer model for the latest features and improvements. We recommend you to use the Interactions API (https://ai.google.dev/gemini-api/docs/migrate-to-interactions).', 'status': 'NOT_FOUND'}}"
+  },
+  "apple-inc-2021-0046": {
+    "status": "failed",
+    "attempts": 1,
+    "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash-lite is no longer available to new users. Please update your code to use a newer model for the latest features and improvements. We recommend you to use the Interactions API (https://ai.google.dev/gemini-api/docs/migrate-to-interactions).', 'status': 'NOT_FOUND'}}"
+  },
+  "apple-inc-2021-0047": {
+    "status": "failed",
+    "attempts": 1,
+    "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash-lite is no longer available to new users. Please update your code to use a newer model for the latest features and improvements. We recommend you to use the Interactions API (https://ai.google.dev/gemini-api/docs/migrate-to-interactions).', 'status': 'NOT_FOUND'}}"
+  },
+  "apple-inc-2021-0048": {
+    "status": "failed",
+    "attempts": 1,
+    "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash-lite is no longer available to new users. Please update your code to use a newer model for the latest features and improvements. We recommend you to use the Interactions API (https://ai.google.dev/gemini-api/docs/migrate-to-interactions).', 'status': 'NOT_FOUND'}}"
+  },
+  "apple-inc-2021-0049": {
+    "status": "failed",
+    "attempts": 1,
+    "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash-lite is no longer available to new users. Please update your code to use a newer model for the latest features and improvements. We recommend you to use the Interactions API (https://ai.google.dev/gemini-api/docs/migrate-to-interactions).', 'status': 'NOT_FOUND'}}"
+  }
+}
