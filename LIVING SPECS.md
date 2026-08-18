@@ -27,11 +27,18 @@ Primary source corpus:
 - Python
 - FastAPI
 - LangChain
-- Gemini API
-- Neo4j
+- Gemini API (entity extraction only)
+- sentence-transformers (local embeddings, `all-MiniLM-L6-v2`)
+- Neo4j (hosted on AuraDB free tier)
 - Cypher
-- PostgreSQL
-- pgvector
+- PostgreSQL + pgvector (hosted on Supabase free tier)
+
+## Hosting Decisions
+
+- Neo4j and Postgres/pgvector are cloud-hosted (AuraDB free tier, Supabase free tier), not run locally.
+- Reason: local machine has 8GB RAM, no GPU, and very limited free disk space, so local Neo4j/Postgres/Docker installs are not viable.
+- Chunk embeddings use a local `sentence-transformers` model instead of the Gemini embedding API, since this is a free-internship project with no API billing budget. CPU-only inference is fine at this corpus size (a few hundred chunks).
+- Gemini free tier is still used for entity extraction (needs LLM reasoning), resumed daily as the quota resets. Corpus may be trimmed to 2-3 filing years if extraction is taking too many days.
 
 ## Phase 1 Scope
 
@@ -62,4 +69,10 @@ It does not include:
 
 ## Current Status
 
-Next step: download a small starter set of SEC filings and build the Phase 1 ingestion pipeline around them.
+- 5 years of Apple 10-K filings (2021-2025) downloaded, chunked into 454 chunks (`data/processed/sec_filings/chunks.jsonl`).
+- AuraDB (Neo4j) and Supabase (Postgres+pgvector) free-tier instances are live; credentials in local `.env` (gitignored). Supabase requires the session pooler host (`aws-0-<region>.pooler.supabase.com`), not the direct `db.<ref>.supabase.co` host, since the direct host is IPv6-only and unreachable from this network.
+- Phase 1 entity extraction in progress: 24 of 454 chunks extracted so far, blocked/paced by Gemini free-tier daily quota (20 requests/day on `gemini-3-flash`). Resumable via `extract_sec_entities.py`, re-run once quota resets.
+- `load_to_neo4j.py` run against real AuraDB: 24 chunks loaded as 136 entities and 114 relationships.
+- Phase 2 complete for current corpus: `build_pgvector_index.py` (using local `sentence-transformers`, `all-MiniLM-L6-v2`, 384-dim) has embedded and indexed all 390 substantive chunks into Supabase pgvector (`sec_chunk_embeddings` table).
+
+Next step: resume Phase 1 extraction daily against the Gemini quota until all 454 chunks are done, then re-run `load_to_neo4j.py` and `build_pgvector_index.py` to pick up the rest.

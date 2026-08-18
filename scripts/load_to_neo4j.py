@@ -7,7 +7,10 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
+from dotenv import load_dotenv
 from neo4j import GraphDatabase
+
+load_dotenv()
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent

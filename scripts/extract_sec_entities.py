@@ -8,8 +8,11 @@ import time
 from pathlib import Path
 from typing import Any
 
+from dotenv import load_dotenv
 from google import genai
 from pydantic import BaseModel, Field
+
+load_dotenv()
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent

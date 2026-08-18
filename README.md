@@ -9,8 +9,9 @@ The project goal is to answer multi-hop questions by combining graph retrieval a
 ### Stack
 
 - Python
-- Neo4j
+- Neo4j (AuraDB free tier)
 - LangChain
-- Gemini API
-- pgvector
+- Gemini API (entity extraction)
+- sentence-transformers (local embeddings)
+- pgvector + PostgreSQL (Supabase free tier)
 - FastAPI

@@ -7,17 +7,18 @@
 - Python
 - FastAPI
 - LangChain
-- Gemini API
+- Gemini API (entity extraction only; free tier, no billing)
+- sentence-transformers (local embeddings, `all-MiniLM-L6-v2`)
 
 ### Knowledge graph
 
-- Neo4j
+- Neo4j, hosted on AuraDB free tier
 - Cypher
 
 ### Vector search
 
 - pgvector
-- PostgreSQL
+- PostgreSQL, hosted on Supabase free tier
 
 ### Retrieval and orchestration
 
@@ -58,6 +59,10 @@
 
 ## Optional Dependencies
 
-- Docker for local development
 - API client tooling for Gemini integration if needed
 - Monitoring or logging tools for debugging and performance tracking
+
+## Constraints
+
+- Development machine has 8GB RAM, no GPU, and very limited free disk space, so Neo4j and Postgres run on cloud free tiers instead of locally, and embeddings run on a small local CPU model instead of a paid API.
+- No budget for paid API usage (free internship project). All external services must stay on free tiers.
