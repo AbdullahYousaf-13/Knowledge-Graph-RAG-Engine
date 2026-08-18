@@ -70,9 +70,10 @@ It does not include:
 ## Current Status
 
 - 5 years of Apple 10-K filings (2021-2025) downloaded, chunked into 454 chunks (`data/processed/sec_filings/chunks.jsonl`).
+- Corpus trimmed to 3 filing years (2023-2025) for entity extraction, per the fallback noted above under Hosting Decisions. `extract_sec_entities.py` reads `FILING_YEARS` (default `2023,2024,2025`) to scope which chunks it processes; `chunks.jsonl` still has all 5 years for Phase 2 vector indexing, which isn't quota-bound.
 - AuraDB (Neo4j) and Supabase (Postgres+pgvector) free-tier instances are live; credentials in local `.env` (gitignored). Supabase requires the session pooler host (`aws-0-<region>.pooler.supabase.com`), not the direct `db.<ref>.supabase.co` host, since the direct host is IPv6-only and unreachable from this network.
-- Phase 1 entity extraction in progress: 24 of 454 chunks extracted so far, blocked/paced by Gemini free-tier daily quota (20 requests/day on `gemini-3-flash`). Resumable via `extract_sec_entities.py`, re-run once quota resets.
-- `load_to_neo4j.py` run against real AuraDB: 24 chunks loaded as 136 entities and 114 relationships.
-- Phase 2 complete for current corpus: `build_pgvector_index.py` (using local `sentence-transformers`, `all-MiniLM-L6-v2`, 384-dim) has embedded and indexed all 390 substantive chunks into Supabase pgvector (`sec_chunk_embeddings` table).
+- Phase 1 entity extraction complete for the trimmed scope: all 225 substantive 2023-2025 chunks extracted (`extractions.jsonl`), 0 failures. An earlier batch of 24 chunks from 2021 was extracted before the trim, then removed from `extractions.jsonl`/progress and purged from Neo4j once the scope narrowed, since none of those 89 entities overlapped with 2023-2025 data.
+- `load_to_neo4j.py` run against the cleaned `extractions.jsonl`: AuraDB now holds 225 Chunk nodes, 279 Entity nodes, 3 Filing nodes (2023/2024/2025), 972 MENTIONS edges, and 584 RELATED_TO edges, with 0 orphaned entities.
+- Phase 2 complete for current corpus: `build_pgvector_index.py` (using local `sentence-transformers`, `all-MiniLM-L6-v2`, 384-dim) has embedded and indexed all 390 substantive chunks (all 5 years) into Supabase pgvector (`sec_chunk_embeddings` table).
 
-Next step: resume Phase 1 extraction daily against the Gemini quota until all 454 chunks are done, then re-run `load_to_neo4j.py` and `build_pgvector_index.py` to pick up the rest.
+Phase 1 and Phase 2 are both done for the current corpus. Next step: start Phase 3 (question routing) — a lightweight router that sends multi-hop/relationship questions to Neo4j and definition/single-fact questions to pgvector.

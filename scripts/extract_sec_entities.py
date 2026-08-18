@@ -23,6 +23,9 @@ OUTPUT_PATH = OUTPUT_DIR / "extractions.jsonl"
 PROGRESS_PATH = OUTPUT_DIR / "extractions_progress.json"
 
 MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview")
+FILING_YEARS = {
+    year.strip() for year in os.getenv("FILING_YEARS", "2023,2024,2025").split(",") if year.strip()
+}
 MAX_CHUNKS = int(os.getenv("MAX_CHUNKS", "20"))
 MIN_CHARS = int(os.getenv("MIN_CHARS", "600"))
 MIN_WORDS = int(os.getenv("MIN_WORDS", "80"))
@@ -151,7 +154,12 @@ def is_substantive_chunk(chunk: dict[str, Any]) -> bool:
 
 
 def filter_chunks(chunks: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    return [chunk for chunk in chunks if is_substantive_chunk(chunk)]
+    return [
+        chunk
+        for chunk in chunks
+        if is_substantive_chunk(chunk)
+        and (not FILING_YEARS or str(chunk.get("filing_year")) in FILING_YEARS)
+    ]
 
 
 def normalize_text(value: str) -> str:
@@ -334,8 +342,6 @@ def main() -> None:
     client = genai.Client(api_key=api_key)
     chunks = load_chunks(INPUT_PATH)
     chunks = filter_chunks(chunks)
-    if MAX_CHUNKS > 0:
-        chunks = chunks[:MAX_CHUNKS]
 
     if RESET_OUTPUT:
         if OUTPUT_PATH.exists():
@@ -343,15 +349,26 @@ def main() -> None:
         if PROGRESS_PATH.exists():
             PROGRESS_PATH.unlink()
 
-    print(f"Loaded {len(chunks)} substantive chunks from {INPUT_PATH.name}")
     print(f"Using model: {MODEL_NAME}")
+    print(f"Filing years: {sorted(FILING_YEARS) if FILING_YEARS else 'all'}")
     print(f"Chunk filter: MIN_CHARS={MIN_CHARS}, MIN_WORDS={MIN_WORDS}")
     print(f"Reset output: {RESET_OUTPUT}")
 
     progress = load_progress(PROGRESS_PATH) if RESUME else {}
-    completed_chunk_ids = set(progress.keys()) if RESUME else set()
+    completed_chunk_ids = (
+        {chunk_id for chunk_id, entry in progress.items() if entry.get("status") == "completed"}
+        if RESUME
+        else set()
+    )
     if RESUME:
         completed_chunk_ids.update(load_existing_chunk_ids(OUTPUT_PATH))
+
+    if MAX_CHUNKS > 0:
+        pending = [c for c in chunks if c["chunk_id"] not in completed_chunk_ids]
+        already_done = [c for c in chunks if c["chunk_id"] in completed_chunk_ids]
+        chunks = already_done + pending[:MAX_CHUNKS]
+
+    print(f"Loaded {len(chunks)} substantive chunks from {INPUT_PATH.name}")
 
     print(f"Resume mode: {RESUME}")
     print(f"Already completed chunks: {len(completed_chunk_ids)}")

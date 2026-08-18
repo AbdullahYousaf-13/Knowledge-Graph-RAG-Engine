@@ -1,202 +1,1127 @@
 {
-  "apple-inc-2021-0008": {
-    "status": "failed",
-    "attempts": 6,
-    "error": "429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3-flash\\nPlease retry in 35.952489908s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '35s'}]}}"
-  },
-  "apple-inc-2021-0009": {
-    "status": "failed",
-    "attempts": 6,
-    "error": "429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3-flash\\nPlease retry in 35.604510371s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'model': 'gemini-3-flash', 'location': 'global'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '35s'}]}}"
-  },
-  "apple-inc-2021-0010": {
-    "status": "failed",
-    "attempts": 6,
-    "error": "429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3-flash\\nPlease retry in 37.981502447s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '37s'}]}}"
-  },
-  "apple-inc-2021-0011": {
-    "status": "failed",
-    "attempts": 6,
-    "error": "429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3-flash\\nPlease retry in 37.738953212s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '37s'}]}}"
-  },
-  "apple-inc-2021-0012": {
+  "apple-inc-2023-0008": {
     "status": "completed",
     "attempts": 1,
     "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0013": {
+  "apple-inc-2023-0009": {
     "status": "completed",
     "attempts": 1,
     "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0014": {
+  "apple-inc-2023-0010": {
     "status": "completed",
     "attempts": 1,
     "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0015": {
+  "apple-inc-2023-0011": {
     "status": "completed",
     "attempts": 1,
     "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0016": {
+  "apple-inc-2023-0012": {
     "status": "completed",
     "attempts": 1,
     "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0017": {
+  "apple-inc-2023-0013": {
     "status": "completed",
     "attempts": 1,
     "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0018": {
+  "apple-inc-2023-0014": {
     "status": "completed",
     "attempts": 1,
     "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0019": {
+  "apple-inc-2023-0015": {
     "status": "completed",
     "attempts": 1,
     "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0020": {
+  "apple-inc-2023-0016": {
     "status": "completed",
     "attempts": 1,
     "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0021": {
+  "apple-inc-2023-0017": {
     "status": "completed",
     "attempts": 1,
     "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0022": {
+  "apple-inc-2023-0018": {
     "status": "completed",
     "attempts": 1,
     "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0023": {
+  "apple-inc-2023-0019": {
     "status": "completed",
     "attempts": 1,
     "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0024": {
+  "apple-inc-2023-0020": {
     "status": "completed",
     "attempts": 1,
     "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0025": {
+  "apple-inc-2023-0021": {
     "status": "completed",
     "attempts": 1,
     "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0026": {
+  "apple-inc-2023-0022": {
     "status": "completed",
     "attempts": 1,
     "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0027": {
+  "apple-inc-2023-0023": {
     "status": "completed",
     "attempts": 1,
     "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0028": {
+  "apple-inc-2023-0024": {
     "status": "completed",
     "attempts": 1,
     "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0029": {
+  "apple-inc-2023-0025": {
     "status": "completed",
     "attempts": 1,
     "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0030": {
+  "apple-inc-2023-0026": {
     "status": "completed",
     "attempts": 1,
     "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0031": {
+  "apple-inc-2023-0027": {
     "status": "completed",
     "attempts": 1,
     "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0032": {
+  "apple-inc-2023-0028": {
     "status": "completed",
     "attempts": 1,
     "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0033": {
+  "apple-inc-2023-0029": {
     "status": "completed",
-    "attempts": 2,
+    "attempts": 1,
     "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0034": {
+  "apple-inc-2023-0030": {
     "status": "completed",
-    "attempts": 2,
+    "attempts": 1,
     "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0035": {
-    "status": "failed",
-    "attempts": 6,
-    "error": "429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3-flash\\nPlease retry in 37.102015136s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '37s'}]}}"
-  },
-  "apple-inc-2021-0036": {
+  "apple-inc-2023-0031": {
     "status": "completed",
-    "attempts": 6,
+    "attempts": 1,
     "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0037": {
-    "status": "failed",
-    "attempts": 6,
-    "error": "429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. \\n* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 20, model: gemini-3-flash\\nPlease retry in 34.759829543s.', 'status': 'RESOURCE_EXHAUSTED', 'details': [{'@type': 'type.googleapis.com/google.rpc.Help', 'links': [{'description': 'Learn more about Gemini API quotas', 'url': 'https://ai.google.dev/gemini-api/docs/rate-limits'}]}, {'@type': 'type.googleapis.com/google.rpc.QuotaFailure', 'violations': [{'quotaMetric': 'generativelanguage.googleapis.com/generate_content_free_tier_requests', 'quotaId': 'GenerateRequestsPerDayPerProjectPerModel-FreeTier', 'quotaDimensions': {'location': 'global', 'model': 'gemini-3-flash'}, 'quotaValue': '20'}]}, {'@type': 'type.googleapis.com/google.rpc.RetryInfo', 'retryDelay': '34s'}]}}"
-  },
-  "apple-inc-2021-0038": {
-    "status": "failed",
+  "apple-inc-2023-0032": {
+    "status": "completed",
     "attempts": 1,
-    "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash-lite is no longer available to new users. Please update your code to use a newer model for the latest features and improvements. We recommend you to use the Interactions API (https://ai.google.dev/gemini-api/docs/migrate-to-interactions).', 'status': 'NOT_FOUND'}}"
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0039": {
-    "status": "failed",
+  "apple-inc-2023-0033": {
+    "status": "completed",
     "attempts": 1,
-    "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash-lite is no longer available to new users. Please update your code to use models/gemini-3.5-flash-lite for the latest features and improvements.', 'status': 'NOT_FOUND'}}"
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0040": {
-    "status": "failed",
+  "apple-inc-2023-0034": {
+    "status": "completed",
     "attempts": 1,
-    "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash-lite is no longer available to new users. Please update your code to use a newer model for the latest features and improvements. We recommend you to use the Interactions API (https://ai.google.dev/gemini-api/docs/migrate-to-interactions).', 'status': 'NOT_FOUND'}}"
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0043": {
-    "status": "failed",
+  "apple-inc-2023-0035": {
+    "status": "completed",
     "attempts": 1,
-    "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash-lite is no longer available to new users. Please update your code to use models/gemini-3.5-flash-lite for the latest features and improvements.', 'status': 'NOT_FOUND'}}"
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0044": {
-    "status": "failed",
+  "apple-inc-2023-0036": {
+    "status": "completed",
     "attempts": 1,
-    "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash-lite is no longer available to new users. Please update your code to use a newer model for the latest features and improvements. We recommend you to use the Interactions API (https://ai.google.dev/gemini-api/docs/migrate-to-interactions).', 'status': 'NOT_FOUND'}}"
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0045": {
-    "status": "failed",
+  "apple-inc-2023-0037": {
+    "status": "completed",
     "attempts": 1,
-    "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash-lite is no longer available to new users. Please update your code to use a newer model for the latest features and improvements. We recommend you to use the Interactions API (https://ai.google.dev/gemini-api/docs/migrate-to-interactions).', 'status': 'NOT_FOUND'}}"
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0046": {
-    "status": "failed",
+  "apple-inc-2023-0038": {
+    "status": "completed",
     "attempts": 1,
-    "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash-lite is no longer available to new users. Please update your code to use a newer model for the latest features and improvements. We recommend you to use the Interactions API (https://ai.google.dev/gemini-api/docs/migrate-to-interactions).', 'status': 'NOT_FOUND'}}"
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0047": {
-    "status": "failed",
+  "apple-inc-2023-0039": {
+    "status": "completed",
     "attempts": 1,
-    "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash-lite is no longer available to new users. Please update your code to use a newer model for the latest features and improvements. We recommend you to use the Interactions API (https://ai.google.dev/gemini-api/docs/migrate-to-interactions).', 'status': 'NOT_FOUND'}}"
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0048": {
-    "status": "failed",
+  "apple-inc-2023-0043": {
+    "status": "completed",
     "attempts": 1,
-    "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash-lite is no longer available to new users. Please update your code to use a newer model for the latest features and improvements. We recommend you to use the Interactions API (https://ai.google.dev/gemini-api/docs/migrate-to-interactions).', 'status': 'NOT_FOUND'}}"
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   },
-  "apple-inc-2021-0049": {
-    "status": "failed",
+  "apple-inc-2023-0044": {
+    "status": "completed",
     "attempts": 1,
-    "error": "404 NOT_FOUND. {'error': {'code': 404, 'message': 'This model models/gemini-2.5-flash-lite is no longer available to new users. Please update your code to use a newer model for the latest features and improvements. We recommend you to use the Interactions API (https://ai.google.dev/gemini-api/docs/migrate-to-interactions).', 'status': 'NOT_FOUND'}}"
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0045": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0046": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0047": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0048": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0049": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0050": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0051": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0052": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0054": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0055": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0056": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0057": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0058": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0059": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0060": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0061": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0062": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0063": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0064": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0065": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0066": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0067": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0068": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0069": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0070": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0071": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0072": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0073": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0074": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0075": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0076": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0077": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0078": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0079": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0080": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0081": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0082": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0083": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0084": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2023-0085": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0008": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0009": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0010": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0011": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0012": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0013": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0015": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0016": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0017": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0018": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0019": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0020": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0021": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0022": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0023": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0024": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0025": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0026": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0027": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0028": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0029": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0030": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0031": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0032": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0033": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0034": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0035": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0036": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0037": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0038": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0039": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0040": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0041": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0042": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0045": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0046": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0047": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0048": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0049": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0050": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0051": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0052": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0053": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0054": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0056": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0057": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0058": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0059": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0060": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0061": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0062": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0063": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0064": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0065": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0066": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0067": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0068": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0069": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0070": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0071": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0072": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0073": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0074": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0075": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0076": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0077": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0078": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0080": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0081": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0083": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0084": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0085": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0086": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0087": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2024-0088": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0008": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0009": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0010": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0011": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0012": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0013": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0015": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0016": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0017": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0018": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0019": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0020": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0021": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0022": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0023": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0024": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0025": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0026": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0027": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0028": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0029": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0030": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0031": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0032": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0033": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0034": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0035": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0036": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0037": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0038": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0039": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0040": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0042": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0045": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0046": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0047": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0048": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0049": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0050": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0051": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0052": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0053": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0054": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0056": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0058": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0059": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0060": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0061": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0062": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0063": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0064": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0065": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0066": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0067": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0068": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0069": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0070": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0071": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0072": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0073": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0074": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0075": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0076": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0077": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0078": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0079": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0080": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0081": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0082": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0083": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0084": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0085": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0086": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0087": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0088": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
+  },
+  "apple-inc-2025-0089": {
+    "status": "completed",
+    "attempts": 1,
+    "output_path": "data\\processed\\sec_filings\\extractions.jsonl"
   }
 }
