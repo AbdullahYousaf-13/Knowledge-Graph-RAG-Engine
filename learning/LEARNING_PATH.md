@@ -7,6 +7,7 @@ Free courses mapped to Project 1's concepts, in the order to take them. Check it
 - [ ] **Cypher Fundamentals** (Neo4j GraphAcademy, ~1 hr, free)
       https://graphacademy.neo4j.com/courses/cypher-fundamentals
       Covers: Cypher query language — reinforces every query you've run in Neo4j Browser.
+      See `CYPHER_CHEATSHEET.md` for a project-specific quick reference.
 
 - [ ] **Neo4j Fundamentals** (Neo4j GraphAcademy, free)
       https://graphacademy.neo4j.com/courses/neo4j-fundamentals
