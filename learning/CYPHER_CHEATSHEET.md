@@ -54,6 +54,7 @@ MATCH (e:Entity)
 WHERE e.entity_type = "Company"
 RETURN e.name
 ```
+Finds every Entity node whose `entity_type` property is exactly `"Company"`, and returns just their names.
 
 ```cypher
 MATCH (c:Chunk)
@@ -61,6 +62,7 @@ WHERE c.filing_year = "2024"
 RETURN c.chunk_id, c.section_name
 LIMIT 10
 ```
+Finds Chunk nodes from the 2024 filing year, returns their id and section name, capped at 10 results.
 
 **Text search (case-insensitive contains):**
 ```cypher
@@ -68,6 +70,7 @@ MATCH (e:Entity)
 WHERE toLower(e.name) CONTAINS "apple"
 RETURN e.name, e.entity_type
 ```
+Lowercases each entity's name before comparing, so it matches "Apple Inc.", "APPLE", "apple" — anything containing the substring `"apple"` regardless of case.
 
 **Multiple conditions:**
 ```cypher
@@ -75,6 +78,7 @@ MATCH (c:Chunk)
 WHERE c.filing_year = "2024" AND c.section_name CONTAINS "RISK"
 RETURN c.chunk_id
 ```
+Finds only chunks that satisfy *both* conditions at once: from 2024, AND from a section whose name contains "RISK" (e.g. "ITEM 1A. RISK FACTORS").
 
 ---
 
@@ -85,12 +89,14 @@ RETURN c.chunk_id
 MATCH (c:Chunk {chunk_id: "apple-inc-2024-0058"})-[:MENTIONS]->(e:Entity)
 RETURN e.name, e.entity_type
 ```
+Starts at one specific chunk (filtered inline by `chunk_id`), follows every outgoing `MENTIONS` edge, and returns every entity that chunk talks about.
 
 **One hop — what is an entity related to?**
 ```cypher
 MATCH (a:Entity {name: "Apple Inc."})-[r:RELATED_TO]->(b:Entity)
 RETURN a.name, r.relation_type, b.name
 ```
+Starts at the "Apple Inc." node, follows every outgoing `RELATED_TO` edge, and returns each connected entity along with what kind of relationship connects them (`r.relation_type`, e.g. `SUPPLIES` or `COMPETES_WITH`).
 
 **Two hops — a friend of a friend, graph-style:**
 ```cypher
@@ -105,12 +111,14 @@ This is the actual "multi-hop question" the whole project is built to answer —
 MATCH (a:Entity {name: "Apple Inc."})-[r:RELATED_TO]-(b:Entity)
 RETURN a.name, r.relation_type, b.name
 ```
+Same as the query above, but finds relationships pointing *either* into or out of Apple — useful when you don't know or don't care which direction a relationship was extracted in.
 
 **Filter by relationship type:**
 ```cypher
 MATCH (a:Entity)-[r:RELATED_TO {relation_type: "SUPPLIES"}]->(b:Entity)
 RETURN a.name, b.name
 ```
+Filters the relationship itself, not just the nodes — only follows `RELATED_TO` edges whose `relation_type` property is exactly `"SUPPLIES"`, so you get supplier pairs only, not every relationship type mixed together.
 
 ---
 
@@ -130,6 +138,7 @@ RETURN e.name, count(c) AS mention_count
 ORDER BY mention_count DESC
 LIMIT 10
 ```
+For every entity, counts how many distinct chunks mention it (note the arrow points *into* `e`, since `Chunk-[:MENTIONS]->Entity`), then sorts to show the 10 most-mentioned entities first — a quick way to see which companies/products dominate the corpus.
 
 **Group relationships by type:**
 ```cypher
@@ -137,12 +146,14 @@ MATCH ()-[r:RELATED_TO]->()
 RETURN r.relation_type, count(*) AS n
 ORDER BY n DESC
 ```
+The empty `()` on both ends means "any node, don't care what" — this only cares about the relationship. Groups all `RELATED_TO` edges by their `relation_type` value and counts how many of each exist, e.g. `SUPPLIES: 42, COMPETES_WITH: 18`.
 
 **Collect into a list instead of counting:**
 ```cypher
 MATCH (c:Chunk {chunk_id: "apple-inc-2024-0058"})-[:MENTIONS]->(e:Entity)
 RETURN collect(e.name) AS entities
 ```
+Same traversal as the "what does a chunk mention" query above, but `collect()` packs all the matched names into a single list in one row, instead of returning one row per entity.
 
 ---
 
@@ -153,6 +164,7 @@ MATCH (c:Chunk)
 RETURN DISTINCT c.filing_year
 ORDER BY c.filing_year
 ```
+Lists every unique `filing_year` value present in your Chunk nodes, sorted ascending — a quick way to confirm exactly which years actually made it into the graph (e.g. `2023, 2024, 2025`), without seeing 225 repeated rows.
 
 ```cypher
 MATCH (e:Entity)
@@ -160,6 +172,7 @@ RETURN e.name
 ORDER BY e.confidence DESC
 LIMIT 5
 ```
+Sorts all entities by their extraction `confidence` score, highest first, and shows only the top 5 — useful for spot-checking Gemini's most confident extractions (or, sorted the other way with `ASC`, its shakiest ones).
 
 ---
 
@@ -184,6 +197,7 @@ MATCH (a:Entity {entity_key: "apple-inc"}), (b:Entity {entity_key: "foxconn"})
 MERGE (a)-[r:RELATED_TO {source_chunk_id: "apple-inc-2024-0058"}]->(b)
 SET r.relation_type = "SUPPLIES"
 ```
+First finds the two already-existing entity nodes by their keys, then finds-or-creates a `RELATED_TO` edge between them (keyed by which chunk sourced it, so the same fact from a different chunk creates a separate edge rather than colliding), then sets its type. This is the exact pattern `upsert_relationship()` uses.
 
 ---
 
@@ -193,17 +207,20 @@ SET r.relation_type = "SUPPLIES"
 MATCH (e:Entity {entity_key: "apple-inc"})
 SET e.confidence = 0.95
 ```
+Finds the Apple entity node and overwrites (or adds, if it didn't exist) its `confidence` property to `0.95`. `SET` doesn't care whether the property existed before — it just makes it true now.
 
 ```cypher
 MATCH (e:Entity {entity_key: "apple-inc"})
 REMOVE e.confidence
 ```
+Finds the same node and deletes the `confidence` property entirely — the property stops existing on that node, as opposed to `SET`ting it to null/empty.
 
 **DELETE a node — fails if it still has relationships:**
 ```cypher
 MATCH (e:Entity {name: "Test Corp"})
 DELETE e
 ```
+Deletes the matched node — but Neo4j will throw an error here if "Test Corp" still has any `MENTIONS` or `RELATED_TO` edges attached, since a graph database won't let you leave a "dangling" relationship pointing at a node that no longer exists.
 
 **DETACH DELETE — deletes the node AND all its relationships in one go.** This is what was used to purge the old 2021 data from your graph:
 ```cypher
