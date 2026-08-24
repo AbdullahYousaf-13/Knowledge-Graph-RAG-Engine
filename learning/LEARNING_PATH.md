@@ -17,25 +17,32 @@ Free courses mapped to Project 1's concepts, in the order to take them. Check it
   Covers: graph modeling, nodes/edges — reinforces your `Entity`/`Chunk`/`Filing` schema.
   ```
 
-- [ ] **Building Knowledge Graphs with LLMs** (Neo4j GraphAcademy, ~2 hrs, free)
+- [x] **Building Knowledge Graphs with LLMs** (Neo4j GraphAcademy, ~2 hrs, free)
   ```
   https://graphacademy.neo4j.com/courses/llm-knowledge-graph-construction/
   Covers: NER, relationship extraction, entity resolution — reinforces `extract_sec_entities.py` + `load_to_neo4j.py`.
   ```
 
-- [ ] **Vector Databases: from Embeddings to Applications** (DeepLearning.AI × Weaviate, ~1 hr, free)
+- [ ] **YouTube Playlist: Complete RAG Playlist** (Krish Naik, 8 videos, free)
   ```
-  https://www.deeplearning.ai/courses/vector-databases-embeddings-applications
-  Covers: embeddings, cosine similarity, vector search fundamentals — reinforces `build_pgvector_index.py`.
-  ```
+  https://www.youtube.com/watch?v=fZM3oX4xEyg&list=PLZoTAELRMXVM8Pf4U67L4UuDRgV4TNX9D
 
-- [ ] **Knowledge Graphs for RAG** (DeepLearning.AI × Neo4j, ~60 min, free)
-  ```
-  https://www.deeplearning.ai/courses/knowledge-graphs-rag
-  Covers: combining a knowledge graph with a vector index — your exact architecture. Uses financial documents as the demo corpus.
-  ```
+  Found by Abdullah, verified via YouTube's own RSS feed. Krish Naik is a well-established,
+  highly credible ML/AI educator with a large, respected channel — stronger pick than the
+  alternatives originally found here.
 
+  Video order: Intro to RAG -> Build RAG Pipeline From Scratch (Data Ingestion to Vector DB),
+  Part 1 -> Advanced Retrieval Query Pipeline, Part 2 -> RAG With Typesense (fast open-source
+  search) -> Agentic RAG Bootcamp Announcement (skippable, not a lesson) -> Agentic RAG With
+  LangGraph -> RAG With MongoDB Vector Search -> RAG Evaluation Crash Course.
 
+  Covers: building an actual vector DB pipeline end-to-end (reinforces `build_pgvector_index.py`),
+  advanced retrieval (Phase 3 routing territory), and RAG evaluation (Phase 4/5 vocabulary) —
+  replaces the "Vector Databases" and "Building and Evaluating Advanced RAG" DeepLearning.AI
+  entries previously here, removed per feedback that the DL.AI teaching style wasn't working.
+
+  Note: video 5 is a bootcamp announcement/ad, not course content — skip it.
+  ```
 
 ## About to implement — prioritize these next
 
@@ -62,8 +69,6 @@ Free courses mapped to Project 1's concepts, in the order to take them. Check it
   you likely only need the first few sections (path/query params, request bodies) to
   get Project 1's endpoint working, not the entire tutorial.
   ```
-
-
 
 ## Notes
 

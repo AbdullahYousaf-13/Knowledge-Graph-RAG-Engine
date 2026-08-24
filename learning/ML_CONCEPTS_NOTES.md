@@ -268,6 +268,38 @@ chunk_C = [0.0, 0.9, 0.1]   →  "The company faces ongoing litigation risk"
 
 **In this project:** This is the category your entire project belongs to. Specifically, you're building a **hybrid** RAG system — using two different retrieval methods together (see below).
 
+### How Krish Naik Frames It
+
+Source: Krish Naik's RAG intro video ("Introduction To Understanding RAG," from the `LEARNING_PATH.md` playlist) plus his companion written article covering the same material. **Caveat:** YouTube blocks direct transcript extraction, so this is sourced from his written companion piece covering the identical intro topic, not a word-for-word video transcript — treat it as a faithful proxy for his framing, not verbatim video text.
+
+**The four problems he opens with** — a different emphasis than the "open-book exam" framing above, worth having both:
+1. **Knowledge cutoff** — an LLM's training data has a hard stop date; anything after that, it simply doesn't know.
+2. **Hallucination** — generating text that *sounds* plausible but is factually wrong.
+3. **Lack of specialized/domain knowledge** — a general-purpose LLM was never trained deeply on *your* specific filings, codebase, or niche documents.
+4. **Inability to cite sources** — even when an LLM happens to be right, it can't point to where that fact came from.
+
+Notice this is a slightly wider framing than the notes above (which centered mainly on hallucination + citations) — knowledge cutoff and domain-specificity are two more concrete, separate reasons RAG exists, and they map directly onto why *this* project needed it: Gemini alone has never seen your specific Apple 10-K filings, no matter how recent its training cutoff is.
+
+**His analogy:** RAG combines "the generative capabilities of LLMs with the precision of information retrieval systems" — like a librarian who doesn't just recite facts from memory, but actually walks to the shelf, pulls the real book, and reads from it before answering.
+
+**His 7-step pipeline** — a more granular breakdown of the same "Retrieval before Generation" idea from the walkthrough below:
+
+| Step | What happens | This project's equivalent |
+|---|---|---|
+| 1. Document Ingestion | Load and chunk raw files | `prepare_sec_filings.py` |
+| 2. Embeddings Creation | Convert chunks into vectors | `build_pgvector_index.py` (`all-MiniLM-L6-v2`) |
+| 3. Vector Database Storage | Index those embeddings | pgvector / `sec_chunk_embeddings` (§5.3–5.5) |
+| 4. Query Processing | Convert the *user's question* into a vector | Not built yet — Phase 3 |
+| 5. Similarity Retrieval | Find the closest matching chunks | Not built yet — Phase 3 (mechanism already exists via pgvector, just not wired to a live question) |
+| 6. Context Augmentation | Combine retrieved chunks + original question into one prompt | Not built yet — Phase 4 |
+| 7. Response Generation | LLM answers using that augmented context | Not built yet — Phase 4 |
+
+Steps 1–3 are exactly what you've already built (Phases 1–2). Steps 4–7 are exactly Phases 3–4 — his pipeline and this project's phase breakdown line up almost one-to-one, which is a good sign you're building something structurally standard, not something idiosyncratic.
+
+**Tooling note, worth flagging honestly:** he teaches this using **LangChain** (an orchestration framework that wraps document loaders, text splitters, embedding calls, and vector-store queries into one library). This project deliberately does **not** use LangChain — everything is hand-written directly against the Gemini API, `sentence-transformers`, Neo4j's driver, and `psycopg`. Neither approach is "more correct" — LangChain trades some transparency for convenience/less boilerplate; this project's raw approach trades more boilerplate for full visibility into exactly what every step does (which has mattered several times already, e.g. debugging the `ivfflat`/extension-creation-order bug would have been harder to spot through a framework's abstraction layer).
+
+**Advanced techniques he mentions** (beyond this project's current scope, but worth knowing the names): hybrid search, multi-query retrieval, contextual compression, and **query routing** — that last one is literally this project's Phase 3, confirming "routing" is a standard, named technique in the field, not something specific to this project's design.
+
 ### Walkthrough: One Question, Start to Finish
 
 Everything below is easier to grasp as one continuous story than as separate definitions, so here's a single example question walked through end-to-end. Worth noting up front: sections 1–5 all map to code you've actually run and seen output from — this section is the first place we talk about something **not built yet** (Phases 3–4), so it's naturally more abstract. You have all the ingredients, you just haven't run the final recipe.
