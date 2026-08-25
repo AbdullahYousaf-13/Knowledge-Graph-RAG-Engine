@@ -195,11 +195,11 @@ Read it top to bottom: AI is the biggest umbrella, everything else is a smaller 
 
 1. Compare the query vector against just the 100 centroids (cheap).
 2. Pick the closest centroid(s) to actually search inside — controlled by a `probes` setting (how many buckets to check). You didn't set this, so it defaults to **1** — only the single nearest bucket gets searched.
-3. Only scan the real vectors inside the probed bucket(s), instead of all 390 rows.
+3. Only scan the real vectors inside the probed bucket(s), instead of all 225 rows.
 
 **Why it's called "approximate":** if the true best match happens to sit in a neighborhood you didn't probe (e.g. right on a boundary between two clusters), you can miss it. This category of technique is called **Approximate Nearest Neighbor (ANN)** search, as opposed to exact/brute-force k-NN (compare against literally every row, guaranteed-correct but slow at scale). The industry term for "how often the approximate method actually finds the true best match" is **recall**.
 
-**Honest caveat about your specific setup:** with `lists = 100` on only 390 rows, each bucket holds ~4 vectors on average — quite fine-grained for this dataset size, and with `probes` defaulting to 1 there's real risk of missing decent matches that landed in a neighboring bucket. At 390 rows, brute-force (no index at all) would likely be near-instant anyway — the index isn't buying much yet, but it's the correct architecture to have in place if the corpus grows much larger later. If retrieval quality seems off during Phase 3 testing, raising `probes` (e.g. to 5–10) or lowering `lists` (e.g. to 10) are the first knobs to try.
+**Honest caveat about your specific setup:** with `lists = 100` on only 225 rows, each bucket holds ~2 vectors on average — quite fine-grained for this dataset size, and with `probes` defaulting to 1 there's real risk of missing decent matches that landed in a neighboring bucket. At 225 rows, brute-force (no index at all) would likely be near-instant anyway — the index isn't buying much yet, but it's the correct architecture to have in place if the corpus grows much larger later. If retrieval quality seems off during Phase 3 testing, raising `probes` (e.g. to 5–10) or lowering `lists` (e.g. to 10) are the first knobs to try.
 
 **The other major option, for context — HNSW:** pgvector also supports **HNSW** (Hierarchical Navigable Small World) indexes, which build a multi-layer graph of connections between vectors instead of clusters. Generally better recall than ivfflat at similar query speed, at the cost of slower/heavier index building. Not used here, but worth knowing as the "upgrade path" if ivfflat's approximation ever becomes a real problem.
 
@@ -311,8 +311,8 @@ Imagine asking Gemini directly, with no help from your project at all: *"What di
 **RAG's fix:** before asking the LLM anything, first go **find the actual real passage** from Apple's real 2024 filing, hand *that exact text* to Gemini, and say "answer using only this — and you now have the receipt to prove it." Retrieval (find the real text) happens *before* Generation (the LLM writing an answer) — that's literally what "R-A-G" stands for.
 
 **Path A — Vector RAG, walked through:** Question: *"What did Apple say about supply chain risks?"*
-1. The question gets embedded (same `all-MiniLM-L6-v2` model used on your 390 chunks) → a 384-number vector.
-2. pgvector compares that vector against your 390 stored chunk-vectors, finds the closest by cosine similarity — **this machinery is already fully built and populated**, verified in Table Editor.
+1. The question gets embedded (same `all-MiniLM-L6-v2` model used on your 225 chunks) → a 384-number vector.
+2. pgvector compares that vector against your 225 stored chunk-vectors, finds the closest by cosine similarity — **this machinery is already fully built and populated**, verified in Table Editor.
 3. The matching chunks' actual text gets pulled out — e.g. a real paragraph about component sourcing.
 4. That real text gets handed to Gemini: "answer using only this passage," producing a grounded answer.
 

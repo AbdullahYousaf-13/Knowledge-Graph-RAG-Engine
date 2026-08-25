@@ -45,7 +45,7 @@
 
 ## Data Requirements
 
-- A small corpus of SEC filings with meaningful relationships. Currently scoped to 3 filing years (2023-2025) for entity extraction, trimmed down from 5 years (2021-2025) due to Gemini free-tier quota limits; vector indexing still covers all 5 years since it isn't quota-bound.
+- A small corpus of SEC filings with meaningful relationships. Currently scoped to 3 filing years (2023-2025) for both entity extraction and vector indexing, trimmed down from 5 years (2021-2025) due to Gemini free-tier quota limits on the extraction side. Vector indexing isn't quota-bound, but was rescoped to match the extraction window anyway so both databases reason over the same underlying facts.
 - Documents that can be chunked into traceable segments.
 - Enough labeled questions to test single-hop, multi-hop, and out-of-scope queries.
 - Metadata for each chunk, including document id and source reference.

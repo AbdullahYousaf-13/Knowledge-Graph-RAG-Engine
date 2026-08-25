@@ -40,6 +40,9 @@ POSTGRES_DB = os.getenv("POSTGRES_DB", "knowledge_graph_rag")
 POSTGRES_USER = os.getenv("POSTGRES_USER", "postgres")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
 
+FILING_YEARS = {
+    year.strip() for year in os.getenv("FILING_YEARS", "2023,2024,2025").split(",") if year.strip()
+}
 MAX_CHUNKS = int(os.getenv("MAX_CHUNKS", "0"))
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", "32"))
 MIN_CHARS = int(os.getenv("MIN_CHARS", "600"))
@@ -108,7 +111,12 @@ def is_substantive_chunk(chunk: dict[str, Any]) -> bool:
 
 
 def filter_chunks(chunks: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    return [chunk for chunk in chunks if is_substantive_chunk(chunk)]
+    return [
+        chunk
+        for chunk in chunks
+        if is_substantive_chunk(chunk)
+        and (not FILING_YEARS or str(chunk.get("filing_year")) in FILING_YEARS)
+    ]
 
 
 def make_dsn() -> str:
@@ -243,6 +251,7 @@ def main() -> None:
         chunks = chunks[:MAX_CHUNKS]
 
     print(f"Loaded {len(chunks)} substantive chunks from {INPUT_PATH.name}")
+    print(f"Filing years: {sorted(FILING_YEARS) if FILING_YEARS else 'all'}")
     print(f"Embedding model: {EMBEDDING_MODEL} (local, dim={EMBEDDING_DIM})")
     print(f"Resume mode: {RESUME}")
     print(f"Reset table: {RESET_TABLE}")
