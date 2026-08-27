@@ -1,6 +1,6 @@
 # What We Did and Why — Full Breakdown for Supervisor
 
-Detailed version. See `PROGRESS_SUMMARY.md` for the short version. Every choice below is stated as: what we did, why, and whether it was the right call — with a better alternative named wherever it wasn't.
+Detailed decision log. See `LIVING_SPECS.md` for the current build state. Every choice below is stated as: what we did, why, and whether it was the right call — with a better alternative named wherever it wasn't. Items originally flagged as gaps are updated to **FIXED** as they close.
 
 ---
 
@@ -22,19 +22,16 @@ Detailed version. See `PROGRESS_SUMMARY.md` for the short version. Every choice 
 **Why:** Structured output eliminates the failure mode of an LLM returning malformed/unparseable text; Gemini's free tier was used to avoid API cost, since this is an unpaid internship project.
 **Verdict:** Good technique. Retry/resume logic had real bugs found and fixed mid-project (a progress-tracking bug that permanently blocked retries, and a chunk-slicing bug that caused infinite reprocessing of the same chunks) — worth mentioning as debugging done, not a criticism of the approach.
 
-## 4. Ontology: NOT constrained — real gap
+## 4. Ontology constraint — FIXED
 
-**What was supposed to happen:** a fixed, predefined list of allowed entity types (e.g. `Company, Person, Product, Regulation`) and relationship types (e.g. `SUPPLIES, COMPETES_WITH`), decided before extraction.
-**What we actually did:** `entity_type` and `relation_type` are free-text strings — Gemini can return anything, only lightly normalized (uppercased, snake-cased) afterward, not restricted to a closed set.
-**Why this is wrong:** without a closed vocabulary, the same real-world category can end up tagged inconsistently across chunks (e.g. "Company" vs "Corporation"), which silently breaks queries filtering by type.
-**Better choice:** define `Literal["Company", "Person", "Product", ...]` in the Pydantic schema so Gemini is forced to pick from a fixed list — not just prompted to.
+**Was:** `entity_type` / `relation_type` were free-text strings — Gemini could return anything, only lightly normalized afterward. Without a closed vocabulary the same category gets tagged inconsistently ("Company" vs "Corporation"), silently breaking type filters.
+**Now:** `entity_type` and `relation_type` are closed `Literal[...]` sets in the Pydantic schema (8 entity types; 20 relation types + `RELATED_TO` catch-all), so Gemini must pick from the list. Existing `extractions.jsonl` was remapped to the closed set (`scripts/remap_ontology.py`) and reloaded into Neo4j — no re-extraction, since only type labels changed, not entity names.
 
-## 5. Entity resolution: exact-match only — real gap
+## 5. Entity resolution — FIXED (for existing data)
 
-**What was supposed to happen:** merge different mentions of the same real-world entity (e.g. "Apple Inc." vs "Apple" vs "AAPL") into one graph node, using similarity-based matching.
-**What we actually did:** `entity_key = slugify(name)` — exact string match after lowercasing/normalizing. Catches "Apple Inc." vs "apple inc." (same after normalizing) but misses "Apple Inc." vs "Apple" (genuinely different strings). Gemini has no role in this step — it only extracts entities per chunk in isolation; the matching/merging logic is entirely our own Python code, run after extraction.
-**Why this is wrong:** likely produces duplicate nodes in the graph for the same real entity, mentioned differently in different chunks — not yet audited how bad this is in the actual 279-entity graph.
-**Better choice:** embedding-similarity matching — compare a new entity's name-embedding against existing entities, merge if cosine similarity exceeds a threshold.
+**Was:** `entity_key = slugify(name)` — exact string match after normalizing. Catches "Apple Inc." vs "apple inc." but misses "Apple Inc." vs "Apple", producing duplicate nodes for one real entity.
+**Now:** name-embedding similarity search over all 279 entities (`scripts/find_entity_merge_candidates.py`) surfaced 101 candidate pairs; each was reviewed with a merge/don't-merge call and reason (`scripts/apply_merge_recommendations.py`; detail in `data/processed/sec_filings/entity_merge_candidates.csv`). Most were false positives from shared vocabulary. 13 genuine duplicate groups (14 entities) were merged after user approval (`scripts/apply_entity_merges.py`) — edges redirected, aliases merged, duplicates deleted; a full Neo4j backup was taken first. Verified: 279 → 265 entities, relationship counts unchanged, 0 orphans.
+**Still true:** ingestion-time matching in `load_to_neo4j.py` is exact-match by design — this was a one-time cleanup of existing data, not a change to how new entities are matched.
 
 ## 6. Loading into Neo4j: `MERGE`-based, idempotent (`load_to_neo4j.py`)
 
@@ -80,4 +77,6 @@ Detailed version. See `PROGRESS_SUMMARY.md` for the short version. Every choice 
 
 ## Summary framing
 
-Phases 1 and 2 have working, idempotent, cost-conscious pipelines — the engineering fundamentals (structured extraction, MERGE-based idempotency, local embeddings) are solid. But three things are genuinely unfinished, not just "different choices": no ontology constraint, no proper entity resolution, and no retrieval quality measurement. Those aren't stylistic — they're steps the project's own spec (`PROJECT_GOAL_AND_PHASES.md`) calls for that got skipped when Phase 1/2 were marked complete.
+Phases 1 and 2 have working, idempotent, cost-conscious pipelines, and the three items originally skipped when they were first marked "complete" — ontology constraint (§4), entity resolution (§5), and retrieval-quality measurement (§10) — are now all done and verified. The vector index was also moved from `ivfflat` to HNSW (§8) and the two stores are now linked by entity (§9).
+
+Remaining honest gaps, both minor: the 2600-char chunk size (§2) was never tuned against retrieval quality, and the retrieval eval set (§10) is only 24 queries — enough to catch regressions and gross failures, not to fine-tune.

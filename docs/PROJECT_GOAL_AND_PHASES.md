@@ -38,11 +38,11 @@ Also switched the vector index from `ivfflat` to `hnsw` (the `lists=100` ivfflat
 
 **Phase 2 is complete.** The recall@k baseline is what Phase 5 compares the hybrid system against.
 
-See `LIVING SPECS.md` ("Current Status") for current data counts and `WHAT_WE_DID_AND_WHY.md` for full reasoning.
+See `LIVING_SPECS.md` for current data counts and build state, and `WHAT_WE_DID_AND_WHY.md` for full reasoning.
 
 ### Phase 3: Route questions to the right retrieval path
 
-**Approach:** plain Python + direct Gemini SDK call with structured output (same pattern as extraction) — no LangChain. See `TECH_STACK_AND_REQUIREMENTS.md` for the full tool table and reasoning.
+**Approach:** plain Python + direct Gemini SDK call with structured output (same pattern as extraction) — no LangChain. See `TECH_STACK.md` for the full tool table and reasoning.
 
 - Add a lightweight router that chooses graph retrieval, vector retrieval, or both.
 - Use graph retrieval for multi-hop, comparison, and relationship questions.
