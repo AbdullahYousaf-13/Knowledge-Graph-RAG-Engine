@@ -224,7 +224,7 @@ def main() -> None:
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
         "git_rev": git_rev(),
         "embedding_model": retrieval.EMBEDDING_MODEL,
-        "embedding_dim": retrieval.get_model().get_sentence_embedding_dimension(),
+        "embedding_dim": retrieval.EMBEDDING_DIM,
         "hnsw_ef_search": retrieval.HNSW_EF_SEARCH,
         "vector_index_type": idx,
         "k_values": ks,

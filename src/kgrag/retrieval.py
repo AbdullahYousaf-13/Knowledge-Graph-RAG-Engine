@@ -41,7 +41,8 @@ def get_model(name: str | None = None):
     from sentence_transformers import SentenceTransformer
 
     model = SentenceTransformer(name or EMBEDDING_MODEL)
-    dim = model.get_sentence_embedding_dimension()
+    get_dim = getattr(model, "get_embedding_dimension", None) or model.get_sentence_embedding_dimension
+    dim = get_dim()
     if dim != EMBEDDING_DIM:
         raise SystemExit(
             f"Embedding model '{name or EMBEDDING_MODEL}' has dim {dim}, expected {EMBEDDING_DIM}. "
