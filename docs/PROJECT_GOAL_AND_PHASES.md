@@ -20,10 +20,12 @@ In practice, the system should:
 ### Phase 1: Extract entities and relationships into Neo4j
 
 - Choose a small set of SEC filings from the public EDGAR data source. — **Done**
-- Define a limited ontology before coding. — **Not done.** `entity_type`/`relation_type` are free-text strings, not a closed set.
+- Define a limited ontology before coding. — **Done.** `entity_type`/`relation_type` are now a closed set (8 entity types, 20 relation types + `RELATED_TO` catch-all), enforced via `Literal[...]` in the Pydantic schema. Existing data remapped, not re-extracted.
 - Chunk documents and extract structured entities and relationships. — **Done**
-- Resolve duplicate entities so the same real-world item becomes one graph node. — **Partially done.** Exact-string-match only (`entity_key = slugify(name)`); misses e.g. "Apple Inc." vs "Apple". No embedding-similarity matching.
+- Resolve duplicate entities so the same real-world item becomes one graph node. — **Done.** Name-embedding similarity search found 101 candidate pairs; each reviewed with a recommendation before applying. 13 genuine duplicate groups (14 entities) merged after approval, verified via node/edge count checks. Ingestion-time matching (`load_to_neo4j.py`) is still exact-match by default — this was a cleanup pass on existing data, not a change to future ingestion logic.
 - Store source chunk IDs so every edge can be traced back to evidence. — **Done**
+
+**Phase 1 is complete.**
 
 ### Phase 2: Build the vector index alongside the graph
 

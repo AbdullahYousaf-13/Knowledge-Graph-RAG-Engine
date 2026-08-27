@@ -8,9 +8,46 @@ import time
 from pathlib import Path
 from typing import Any
 
+from typing import Literal
+
 from dotenv import load_dotenv
 from google import genai
 from pydantic import BaseModel, Field
+
+EntityType = Literal[
+    "Company",
+    "Person",
+    "Product",
+    "Location",
+    "Metric",
+    "Regulation",
+    "Organization",
+    "Other",
+]
+
+RelationType = Literal[
+    "OWNS",
+    "SUPPLIES",
+    "COMPETES_WITH",
+    "LOCATED_IN",
+    "OPERATES_IN",
+    "PRODUCES",
+    "SELLS",
+    "OFFERS",
+    "PROVIDES",
+    "USES",
+    "WORKS_FOR",
+    "REPORTS",
+    "ANNOUNCED",
+    "HAS_METRIC",
+    "SUBJECT_TO",
+    "ISSUED",
+    "SUES",
+    "DEVELOPS",
+    "EXPOSED_TO",
+    "MANAGES",
+    "RELATED_TO",
+]
 
 load_dotenv()
 
@@ -51,7 +88,7 @@ SECTION_TITLE_BLACKLIST = {
 
 class Entity(BaseModel):
     name: str = Field(description="Canonical name of the entity.")
-    entity_type: str = Field(description="Entity category such as Company, Person, Product, Location, Metric, Regulation, or Other.")
+    entity_type: EntityType = Field(description="Entity category. Must be one of the allowed types.")
     aliases: list[str] = Field(default_factory=list, description="Alternate names used in the filing.")
     description: str = Field(description="Short description of the entity in this chunk.")
     confidence: float = Field(ge=0.0, le=1.0, description="Confidence that the entity is correctly extracted.")
@@ -59,7 +96,7 @@ class Entity(BaseModel):
 
 class Relationship(BaseModel):
     source_entity: str = Field(description="Name of the source entity.")
-    relation_type: str = Field(description="Relationship type such as OWNS, SUPPLIES, COMPETES_WITH, LOCATED_IN, MENTIONS, RELATES_TO, or other concise verb phrase.")
+    relation_type: RelationType = Field(description="Relationship type. Must be one of the allowed types; use RELATED_TO if nothing else fits.")
     target_entity: str = Field(description="Name of the target entity.")
     description: str = Field(description="Short explanation of why the relationship exists.")
     confidence: float = Field(ge=0.0, le=1.0, description="Confidence that the relationship is correctly extracted.")
