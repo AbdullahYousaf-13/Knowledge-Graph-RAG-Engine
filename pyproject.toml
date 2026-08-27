@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kgrag"
+version = "0.1.0"
+description = "Shared library for the hybrid knowledge-graph + vector RAG engine over SEC filings."
+requires-python = ">=3.10"
+dependencies = [
+    "google-genai>=2.18.0",
+    "pydantic>=2.12.5",
+    "neo4j>=6.2.0",
+    "psycopg[binary]>=3.2.0",
+    "pgvector>=0.3.6",
+    "sentence-transformers>=3.0.0",
+    "python-dotenv>=1.0.1",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]

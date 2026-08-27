@@ -30,11 +30,15 @@ In practice, the system should:
 ### Phase 2: Build the vector index alongside the graph
 
 - Embed the same chunks into pgvector. — **Done**
-- Store metadata such as document id, section path, date, and referenced entity ids. — **Partially done.** All metadata present except `entity_ids` — no column links a vector row to the entities that chunk mentions.
+- Store metadata such as document id, section path, date, and referenced entity ids. — **Done.** `sec_chunk_embeddings` has an `entity_keys TEXT[]` column (+ GIN index), backfilled from `extractions.jsonl` with the post-merge canonical-key remap and verified against Neo4j (`scripts/backfill_entity_keys.py`). Named `entity_keys`, not `entity_ids`, because the values are `slugify(name)` slugs — the same key Neo4j uses.
 - Use shared chunk IDs between the graph and vector store. — **Done**
-- Measure retrieval quality before building any routing logic. — **Not done.** No recall@k, no labeled query set.
+- Measure retrieval quality before building any routing logic. — **Done.** 24 hand-labeled queries (`data/eval/retrieval_queries.jsonl`), recall@k / hit@k / MRR by category via `scripts/eval_retrieval.py`, baseline results in `data/eval/results/`. First run: overall hit@5 0.90 / recall@5 0.54 / MRR 0.78.
 
-See `LIVING SPECS.md` ("Current Status") for current data counts and `WHAT_WE_DID_AND_WHY.md` for full reasoning and better alternatives on each open item above.
+Also switched the vector index from `ivfflat` to `hnsw` (the `lists=100` ivfflat over 225 rows was pathological). Shared retrieval/db code moved into `src/kgrag/`.
+
+**Phase 2 is complete.** The recall@k baseline is what Phase 5 compares the hybrid system against.
+
+See `LIVING SPECS.md` ("Current Status") for current data counts and `WHAT_WE_DID_AND_WHY.md` for full reasoning.
 
 ### Phase 3: Route questions to the right retrieval path
 

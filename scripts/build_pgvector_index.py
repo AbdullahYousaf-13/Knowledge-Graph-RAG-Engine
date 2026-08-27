@@ -24,6 +24,8 @@ except ImportError as exc:  # pragma: no cover - import guard for local setup
 
 from dotenv import load_dotenv
 
+from kgrag.entity_keys import load_entity_keys_by_chunk
+
 load_dotenv()
 
 
@@ -148,6 +150,7 @@ def create_schema(conn) -> None:
                 section_chunk_index INTEGER,
                 chunk_index INTEGER,
                 text TEXT NOT NULL,
+                entity_keys TEXT[] NOT NULL DEFAULT '{{}}',
                 metadata JSONB NOT NULL DEFAULT '{{}}'::jsonb,
                 embedding VECTOR({EMBEDDING_DIM}),
                 created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -159,8 +162,15 @@ def create_schema(conn) -> None:
             f"""
             CREATE INDEX IF NOT EXISTS {TABLE_NAME}_embedding_idx
             ON {TABLE_NAME}
-            USING ivfflat (embedding vector_cosine_ops)
-            WITH (lists = 100)
+            USING hnsw (embedding vector_cosine_ops)
+            WITH (m = 16, ef_construction = 64)
+            """
+        )
+        cur.execute(
+            f"""
+            CREATE INDEX IF NOT EXISTS {TABLE_NAME}_entity_keys_idx
+            ON {TABLE_NAME}
+            USING gin (entity_keys)
             """
         )
     conn.commit()
@@ -203,6 +213,7 @@ def upsert_rows(conn, rows: list[dict[str, Any]]) -> None:
                     section_chunk_index,
                     chunk_index,
                     text,
+                    entity_keys,
                     metadata,
                     embedding,
                     updated_at
@@ -220,6 +231,7 @@ def upsert_rows(conn, rows: list[dict[str, Any]]) -> None:
                     %(section_chunk_index)s,
                     %(chunk_index)s,
                     %(text)s,
+                    %(entity_keys)s,
                     %(metadata)s,
                     %(embedding)s,
                     NOW()
@@ -236,6 +248,7 @@ def upsert_rows(conn, rows: list[dict[str, Any]]) -> None:
                     section_chunk_index = EXCLUDED.section_chunk_index,
                     chunk_index = EXCLUDED.chunk_index,
                     text = EXCLUDED.text,
+                    entity_keys = EXCLUDED.entity_keys,
                     metadata = EXCLUDED.metadata,
                     embedding = EXCLUDED.embedding,
                     updated_at = NOW()
@@ -256,6 +269,8 @@ def main() -> None:
     print(f"Resume mode: {RESUME}")
     print(f"Reset table: {RESET_TABLE}")
     print(f"Batch size: {BATCH_SIZE}")
+
+    entity_keys_by_chunk = load_entity_keys_by_chunk()
 
     model = SentenceTransformer(EMBEDDING_MODEL)
     with psycopg.connect(make_dsn()) as conn:
@@ -288,6 +303,7 @@ def main() -> None:
 
             rows: list[dict[str, Any]] = []
             for chunk, embedding in zip(batch, embeddings):
+                chunk_entity_keys = entity_keys_by_chunk.get(chunk["chunk_id"], [])
                 rows.append(
                     {
                         "chunk_id": chunk["chunk_id"],
@@ -302,6 +318,7 @@ def main() -> None:
                         "section_chunk_index": chunk.get("section_chunk_index"),
                         "chunk_index": chunk.get("chunk_index"),
                         "text": chunk["text"],
+                        "entity_keys": chunk_entity_keys,
                         "metadata": json.dumps(
                             {
                                 "chunk_id": chunk["chunk_id"],
@@ -310,6 +327,7 @@ def main() -> None:
                                 "section_name": chunk.get("section_name"),
                                 "section_chunk_index": chunk.get("section_chunk_index"),
                                 "chunk_index": chunk.get("chunk_index"),
+                                "entity_keys": chunk_entity_keys,
                             }
                         ),
                         "embedding": embedding,

@@ -48,25 +48,21 @@ Detailed version. See `PROGRESS_SUMMARY.md` for the short version. Every choice 
 **Why:** No API cost, no additional rate-limit exposure, and CPU inference is fast enough at this corpus size.
 **Verdict:** Good, deliberate choice given the project's zero-budget constraint.
 
-## 8. Vector index type: `ivfflat`, not HNSW — real gap
+## 8. Vector index type: `ivfflat` → `hnsw` — FIXED
 
-**What was available:** pgvector (the installed version) supports both `ivfflat` (cluster-based) and `HNSW` (graph-based, generally better recall at similar speed).
-**What we actually did:** `ivfflat` only, `HNSW` never tried.
-**Why this happened:** not a deliberate trade-off — just what got built first, never revisited.
-**Better choice:** switch to `HNSW`. Low-risk change — doesn't touch existing embeddings, just rebuilds the index structure.
+**Was:** `ivfflat` only (`lists=100`), `HNSW` never tried — not a trade-off, just what got built first. Over 225 rows, `lists=100` means ~2 rows per list, which is pathological for recall.
+**Now:** `scripts/backfill_entity_keys.py` dropped and recreated the embedding index as `hnsw (m=16, ef_construction=64)`; `build_pgvector_index.py` builds HNSW for fresh loads. Embeddings untouched. Query-time `hnsw.ef_search` is pinned (default 64) in `src/kgrag/retrieval.py` so recall is reproducible; `eval_retrieval.py --ef-search` can sweep the recall/latency trade-off.
 
-## 9. No `entity_ids` link between pgvector and Neo4j — real gap
+## 9. Entity link between pgvector and Neo4j — FIXED
 
-**What was supposed to happen:** each vector-store row should store which entities that chunk mentions, so you can filter vector search by entity in one query.
-**What we actually did:** the two databases link only via shared `chunk_id` — no direct entity cross-reference on the vector side.
-**Better choice:** add an `entity_ids` column to the pgvector table, backfilled from `extractions.jsonl`.
+**Was:** the two stores linked only via shared `chunk_id`.
+**Now:** `sec_chunk_embeddings.entity_keys TEXT[]` (+ GIN index), backfilled from `extractions.jsonl`. Named `entity_keys` (not `entity_ids`) because the values are the `slugify(name)` slug — the exact key Neo4j uses, so the join is a plain string with no separate id system. The backfill remaps pre-merge entity names to their post-merge canonical key (`src/kgrag/entity_keys.py`, kept in sync with `apply_entity_merges.py`), then verifies every key against the live graph. `retrieval.vector_search(entity_keys=[...])` filters via array overlap — the primitive the Phase 3 router will use.
 
-## 10. No retrieval quality measurement (recall@k) — real gap, most important one
+## 10. Retrieval quality measurement (recall@k) — FIXED
 
-**What was supposed to happen (per `PROJECT_GOAL_AND_PHASES.md`):** "Measure retrieval quality before building any routing logic."
-**What we actually did:** nothing — no labeled query set, no recall@k benchmark, ever built. Phase 2 was marked "done" without this step.
-**Why this matters most:** without it, there's no actual evidence the vector search retrieves the right chunks — it's untested, not just unoptimized.
-**Better choice:** build a small labeled set (a handful of questions with manually-identified correct chunks) and compute recall@k before trusting the retrieval layer.
+**Was:** nothing — no labeled set, no benchmark. Phase 2 had been marked "done" without it.
+**Now:** `data/eval/retrieval_queries.jsonl` — 24 hand-labeled queries (12 single-hop, 3 aggregation, 6 multi-hop, 3 out-of-scope), each with the chunk ids that genuinely answer it (labels from reading the filings, never from retriever output). `scripts/eval_retrieval.py` computes recall@k / hit@k / MRR by category and writes a timestamped results file to `data/eval/results/` (records model, index type, `ef_search`, git rev, query-set hash). First run (HNSW, ef_search=64): overall hit@5 0.90, recall@5 0.54, MRR 0.78; single-hop hit@5 0.83, multi-hop hit@5 1.0. This is the vector-only baseline Phase 5 compares the hybrid system against. Caveat: 24 × 225 is small — the numbers are directional, for catching regressions and gross failures, not fine-tuning.
+**Surfaced for Phase 3:** out-of-scope queries scored up to ~0.69 similarity, overlapping the in-scope range — a naive score threshold will not cleanly gate them out.
 
 ## 11. Cloud hosting: AuraDB + Supabase, not local Neo4j/Postgres
 
