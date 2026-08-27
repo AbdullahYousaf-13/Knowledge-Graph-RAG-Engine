@@ -2,7 +2,9 @@ __pycache__/
 *.pyc
 .env
 *.bak
+*.bak*
 data/backups/
+data/logs/
 *.egg-info/
 build/
 dist/

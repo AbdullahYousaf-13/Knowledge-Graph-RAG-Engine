@@ -25,13 +25,11 @@ ENTITY_TYPE_REMAP = {
 
 RELATION_TYPES = {
     "OWNS",
-    "SUPPLIES",
     "COMPETES_WITH",
     "LOCATED_IN",
     "OPERATES_IN",
     "PRODUCES",
     "SELLS",
-    "OFFERS",
     "PROVIDES",
     "USES",
     "WORKS_FOR",
@@ -39,12 +37,20 @@ RELATION_TYPES = {
     "ANNOUNCED",
     "HAS_METRIC",
     "SUBJECT_TO",
-    "ISSUED",
     "SUES",
-    "DEVELOPS",
-    "EXPOSED_TO",
-    "MANAGES",
     "RELATED_TO",
+}
+
+# Consolidation pass (Phase 1 -> 14-type trim, see docs/WHAT_WE_DID_AND_WHY.md):
+# folds the thinnest/most-overlapping types into a close semantic neighbor instead
+# of leaving them as one-off categories. SUPPLIES had zero instances ever extracted,
+# so it just falls through to the RELATED_TO catch-all below like any other unknown value.
+RELATION_TYPE_REMAP = {
+    "OFFERS": "PROVIDES",
+    "ISSUED": "ANNOUNCED",
+    "DEVELOPS": "PRODUCES",
+    "EXPOSED_TO": "SUBJECT_TO",
+    "MANAGES": "RELATED_TO",
 }
 
 FALLBACK_RELATION_TYPE = "RELATED_TO"
@@ -59,7 +65,7 @@ def remap_entity_type(value: str) -> str:
 def remap_relation_type(value: str) -> str:
     if value in RELATION_TYPES:
         return value
-    return FALLBACK_RELATION_TYPE
+    return RELATION_TYPE_REMAP.get(value, FALLBACK_RELATION_TYPE)
 
 
 def main() -> None:

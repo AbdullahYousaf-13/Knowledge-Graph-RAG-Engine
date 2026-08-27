@@ -10,6 +10,9 @@ from typing import Any
 from dotenv import load_dotenv
 from neo4j import GraphDatabase
 
+from kgrag.entity_resolution import EntityResolver, load_existing_entities
+from kgrag.retrieval import get_model
+
 load_dotenv()
 
 
@@ -175,8 +178,8 @@ def upsert_chunk(tx, record: dict[str, Any]) -> None:
     )
 
 
-def upsert_entity(tx, entity: dict[str, Any], record: dict[str, Any]) -> None:
-    ek = entity_key(entity["name"])
+def upsert_entity(tx, entity: dict[str, Any], record: dict[str, Any], resolver: EntityResolver) -> None:
+    ek = resolver.resolve(entity["name"], entity["entity_type"]).entity_key
     aliases = list(dict.fromkeys(entity.get("aliases", [])))
     tx.run(
         """
@@ -203,9 +206,12 @@ def upsert_entity(tx, entity: dict[str, Any], record: dict[str, Any]) -> None:
     )
 
 
-def upsert_relationship(tx, relationship: dict[str, Any], record: dict[str, Any]) -> None:
-    source_key = entity_key(relationship["source_entity"])
-    target_key = entity_key(relationship["target_entity"])
+def upsert_relationship(tx, relationship: dict[str, Any], record: dict[str, Any], resolver: EntityResolver) -> None:
+    # Fallback entity_type "Other" only matters if this name was never seen via
+    # upsert_entity first (shouldn't normally happen - relationships reference names
+    # from the same record's entities list, already resolved and cached by then).
+    source_key = resolver.resolve(relationship["source_entity"], "Other").entity_key
+    target_key = resolver.resolve(relationship["target_entity"], "Other").entity_key
     relation_type = normalize_relation_type(relationship["relation_type"])
 
     tx.run(
@@ -239,6 +245,14 @@ def ingest_records(driver, records: list[dict[str, Any]]) -> Counter:
         if CLEAN_EXISTING:
             session.execute_write(clean_existing_graph)
 
+        # Two-tier entity resolution (see src/kgrag/entity_resolution.py): exact slug
+        # match first, then embedding similarity against the entities already in the
+        # graph, with a conservative auto-merge threshold and a review queue for
+        # anything in between. Loaded once per run, not once per entity.
+        existing = load_existing_entities(driver)
+        resolver = EntityResolver(existing, get_model())
+        print(f"Entity resolver: {len(existing)} existing entities loaded for matching.")
+
         for record in records:
             full_record = enrich_record(record, chunk_metadata.get(record["chunk_id"]))
             session.execute_write(upsert_filing, full_record)
@@ -246,12 +260,19 @@ def ingest_records(driver, records: list[dict[str, Any]]) -> Counter:
             stats["chunks"] += 1
 
             for entity in record.get("entities", []):
-                session.execute_write(upsert_entity, entity, full_record)
+                session.execute_write(upsert_entity, entity, full_record, resolver)
                 stats["entities"] += 1
 
             for relationship in record.get("relationships", []):
-                session.execute_write(upsert_relationship, relationship, full_record)
+                session.execute_write(upsert_relationship, relationship, full_record, resolver)
                 stats["relationships"] += 1
+
+    auto_merged = sum(1 for r in resolver._resolved_cache.values() if r.matched_existing and r.similarity and r.similarity < 1.0)
+    flagged = sum(1 for r in resolver._resolved_cache.values() if r.needs_review)
+    if auto_merged:
+        print(f"Entity resolver: {auto_merged} name(s) auto-merged to an existing entity by embedding similarity.")
+    if flagged:
+        print(f"Entity resolver: {flagged} name(s) flagged for review in entity_resolution_review.csv.")
 
     return stats
 

@@ -27,13 +27,11 @@ EntityType = Literal[
 
 RelationType = Literal[
     "OWNS",
-    "SUPPLIES",
     "COMPETES_WITH",
     "LOCATED_IN",
     "OPERATES_IN",
     "PRODUCES",
     "SELLS",
-    "OFFERS",
     "PROVIDES",
     "USES",
     "WORKS_FOR",
@@ -41,11 +39,7 @@ RelationType = Literal[
     "ANNOUNCED",
     "HAS_METRIC",
     "SUBJECT_TO",
-    "ISSUED",
     "SUES",
-    "DEVELOPS",
-    "EXPOSED_TO",
-    "MANAGES",
     "RELATED_TO",
 ]
 

@@ -20,9 +20,9 @@ In practice, the system should:
 ### Phase 1: Extract entities and relationships into Neo4j
 
 - Choose a small set of SEC filings from the public EDGAR data source. — **Done**
-- Define a limited ontology before coding. — **Done.** `entity_type`/`relation_type` are now a closed set (8 entity types, 20 relation types + `RELATED_TO` catch-all), enforced via `Literal[...]` in the Pydantic schema. Existing data remapped, not re-extracted.
+- Define a limited ontology before coding. — **Done, tightened to match spec range (8-15 relationship types).** `entity_type`/`relation_type` are a closed set (8 entity types, 14 relation types + `RELATED_TO` catch-all = 15 total), enforced via `Literal[...]` in the Pydantic schema. Existing data remapped twice, not re-extracted either time.
 - Chunk documents and extract structured entities and relationships. — **Done**
-- Resolve duplicate entities so the same real-world item becomes one graph node. — **Done.** Name-embedding similarity search found 101 candidate pairs; each reviewed with a recommendation before applying. 13 genuine duplicate groups (14 entities) merged after approval, verified via node/edge count checks. Ingestion-time matching (`load_to_neo4j.py`) is still exact-match by default — this was a cleanup pass on existing data, not a change to future ingestion logic.
+- Resolve duplicate entities so the same real-world item becomes one graph node. — **Done, and now baked into ingestion, not just a one-time cleanup.** Original pass: name-embedding similarity search found 101 candidate pairs, each reviewed before applying (13 groups merged). Follow-up: `src/kgrag/entity_resolution.py` wires two-tier resolution into `load_to_neo4j.py` itself — exact match, then embedding similarity with a conservative auto-merge bar and a human-review queue for anything less certain — so new extraction runs won't silently recreate the same duplicates.
 - Store source chunk IDs so every edge can be traced back to evidence. — **Done**
 
 **Phase 1 is complete.**
@@ -44,10 +44,14 @@ See `LIVING_SPECS.md` for current data counts and build state, and `WHAT_WE_DID_
 
 **Approach:** plain Python + direct Gemini SDK call with structured output (same pattern as extraction) — no LangChain. See `TECH_STACK.md` for the full tool table and reasoning.
 
-- Add a lightweight router that chooses graph retrieval, vector retrieval, or both.
-- Use graph retrieval for multi-hop, comparison, and relationship questions.
-- Use vector retrieval for definitions, policy lookups, and single-fact questions.
-- Keep graph queries parameterized instead of letting the model write raw Cypher.
+- Add a lightweight router that chooses graph retrieval, vector retrieval, or both. — **Done.** `src/kgrag/router.py`.
+- Use graph retrieval for multi-hop, comparison, and relationship questions. — **Done**, with a caveat: on this corpus only 2/24 labeled test questions genuinely need it (most filing content isn't captured as a graph relationship).
+- Use vector retrieval for definitions, policy lookups, and single-fact questions. — **Done**
+- Keep graph queries parameterized instead of letting the model write raw Cypher. — **Done.** `src/kgrag/graph_retrieval.py` — fixed Cypher templates only, entity names are bound parameters.
+- Measure routing accuracy before calling it done. — **Done.** 87.5% (21/24) on the labeled set, `scripts/eval_routing.py`. See `LIVING_SPECS.md` for the full breakdown.
+- Low-confidence fallback that runs both paths, and a persistent log of every routing decision. — **Done.** `RouteDecision.confidence` + `execute_route()` fallback (default threshold 0.6), `data/logs/routing_log.jsonl`.
+
+**Phase 3 is complete.** See `LIVING_SPECS.md` for the two real bugs found and fixed during testing (hub-node noise, ambiguous name matching), and for a real mistake made and fixed while trimming the ontology (a stale reload script briefly recreated 14 already-merged duplicate entities before being caught and corrected).
 
 ### Phase 4: Merge both sources into one grounded answer
 

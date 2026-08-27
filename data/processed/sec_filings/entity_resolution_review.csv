@@ -1,0 +1,13 @@
+timestamp,new_name,new_entity_type,matched_existing_name,matched_existing_key,similarity
+2026-08-27T12:25:04.525764+00:00,Wearables and Accessories,Product,"Wearables, Home and Accessories",wearables-home-and-accessories,0.9096
+2026-08-27T12:25:09.667332+00:00,U.S. Securities and Exchange Commission,Regulation,Securities and Exchange Commission,securities-and-exchange-commission,0.9492
+2026-08-27T12:25:11.870499+00:00,U.S.,Location,United States,united-states,0.8774
+2026-08-27T12:25:20.429912+00:00,COVID-19 pandemic,Other,COVID-19,covid-19,0.8668
+2026-08-27T12:25:41.120723+00:00,European Union Digital Markets Act,Regulation,Digital Markets Act,digital-markets-act,0.8219
+2026-08-27T12:28:35.932348+00:00,2014 Employee Stock Plan,Product,Apple Inc. 2014 Employee Stock Plan,apple-inc-2014-employee-stock-plan,0.8665
+2026-08-27T12:28:36.322740+00:00,Non-Employee Director Stock Plan,Product,Apple Inc. Non-Employee Director Stock Plan,apple-inc-non-employee-director-stock-plan,0.868
+2026-08-27T12:32:30.426261+00:00,Rule 10b5-1(c),Regulation,Rule 10b5-1,rule-10b5-1,0.9218
+2026-08-27T12:32:43.835191+00:00,2022 Employee Stock Plan,Regulation,Apple Inc. 2022 Employee Stock Plan,apple-inc-2022-employee-stock-plan,0.8416
+2026-08-27T12:34:22.133605+00:00,U.S. Internal Revenue Service,Other,Internal Revenue Service,internal-revenue-service,0.9326
+2026-08-27T12:34:28.723466+00:00,Department of Justice,Other,U.S. Department of Justice,u-s-department-of-justice,0.9332
+2026-08-27T12:35:35.605028+00:00,ASU No. 2023-07,Regulation,ASU 2023-09,asu-2023-09,0.9235

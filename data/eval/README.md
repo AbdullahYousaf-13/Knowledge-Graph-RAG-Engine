@@ -15,6 +15,7 @@ One JSON object per line:
 | `relevant_chunk_ids` | chunk ids that genuinely answer the question (order irrelevant). Empty for `out-of-scope`. |
 | `filing_years` | which filing years the answer appears in (informational) |
 | `notes` | why these chunks — the rationale for the label |
+| `expected_path` | `vector` \| `graph` \| `both` \| `out_of_scope` — used by `scripts/eval_routing.py` (Phase 3 gate). Assigned by actually running the router's entity extraction + `kgrag.graph_retrieval.graph_search()` per query and checking whether real, relevant facts came back — not guessed from the question's wording or its `category`. On this corpus only 2/24 questions genuinely need the graph (most filing content was never captured as a graph relationship to begin with, e.g. `SUPPLIES` has zero instances across the whole graph) — see `docs/WHAT_WE_DID_AND_WHY.md` for the full finding. |
 
 The corpus is frozen at 225 chunks (Apple 10-K, 2023–2025), so chunk ids are stable.
 When a disclosure repeats across years (e.g. the segment list), list **every** recurring
