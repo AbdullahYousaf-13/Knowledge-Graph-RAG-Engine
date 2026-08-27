@@ -115,14 +115,20 @@ def _main() -> None:
     parser.add_argument("question")
     parser.add_argument("-k", type=int, default=5)
     parser.add_argument("--entity", action="append", help="Restrict to chunks mentioning this entity_key (repeatable).")
+    parser.add_argument("-f", "--full", action="store_true", help="Print each chunk's full text.")
+    parser.add_argument("--chars", type=int, default=140, help="Preview length when not --full (default 140).")
     args = parser.parse_args()
 
     hits = vector_search(args.question, k=args.k, entity_keys=args.entity)
     for i, h in enumerate(hits, 1):
-        preview = " ".join(h.text.split())[:140]
+        print(f"\n{'=' * 70}")
         print(f"{i:>2}. {h.score:.3f}  {h.chunk_id}  [{h.section_name}]")
-        print(f"     entities: {', '.join(h.entity_keys) or '(none)'}")
-        print(f"     {preview}...")
+        print(f"    entities: {', '.join(h.entity_keys) or '(none)'}")
+        print("-" * 70)
+        if args.full:
+            print(h.text.strip())
+        else:
+            print(" ".join(h.text.split())[: args.chars] + " ...")
 
 
 if __name__ == "__main__":
