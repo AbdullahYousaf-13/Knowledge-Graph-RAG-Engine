@@ -96,7 +96,7 @@ Starts at one specific chunk (filtered inline by `chunk_id`), follows every outg
 MATCH (a:Entity {name: "Apple Inc."})-[r:RELATED_TO]->(b:Entity)
 RETURN a.name, r.relation_type, b.name
 ```
-Starts at the "Apple Inc." node, follows every outgoing `RELATED_TO` edge, and returns each connected entity along with what kind of relationship connects them (`r.relation_type`, e.g. `SUPPLIES` or `COMPETES_WITH`).
+Starts at the "Apple Inc." node, follows every outgoing `RELATED_TO` edge, and returns each connected entity along with what kind of relationship connects them (`r.relation_type`, e.g. `COMPETES_WITH` or `LOCATED_IN`).
 
 **Two hops — a friend of a friend, graph-style:**
 ```cypher
@@ -115,10 +115,10 @@ Same as the query above, but finds relationships pointing *either* into or out o
 
 **Filter by relationship type:**
 ```cypher
-MATCH (a:Entity)-[r:RELATED_TO {relation_type: "SUPPLIES"}]->(b:Entity)
+MATCH (a:Entity)-[r:RELATED_TO {relation_type: "COMPETES_WITH"}]->(b:Entity)
 RETURN a.name, b.name
 ```
-Filters the relationship itself, not just the nodes — only follows `RELATED_TO` edges whose `relation_type` property is exactly `"SUPPLIES"`, so you get supplier pairs only, not every relationship type mixed together.
+Filters the relationship itself, not just the nodes — only follows `RELATED_TO` edges whose `relation_type` property is exactly `"COMPETES_WITH"`, so you get competitor pairs only, not every relationship type mixed together. Try it — it returns real rows, e.g. `Apple Inc. -> Android`.
 
 ---
 
@@ -129,7 +129,7 @@ MATCH (n)
 RETURN labels(n) AS label, count(*) AS n
 ORDER BY n DESC
 ```
-This is the exact query used to verify your graph's state throughout this project (225 Chunks, 279 Entities, 3 Filings).
+This is the exact query used to verify your graph's state throughout this project (225 Chunks, 277 Entities, 3 Filings — entity count moved a few times as ontology/resolution work landed: 279 originally extracted, 265 after the first entity-merge cleanup, 277 now that ingestion-time resolution also creates new entities for anything it's not confident enough to auto-merge).
 
 **Which entities are mentioned the most?**
 ```cypher
@@ -146,7 +146,7 @@ MATCH ()-[r:RELATED_TO]->()
 RETURN r.relation_type, count(*) AS n
 ORDER BY n DESC
 ```
-The empty `()` on both ends means "any node, don't care what" — this only cares about the relationship. Groups all `RELATED_TO` edges by their `relation_type` value and counts how many of each exist, e.g. `SUPPLIES: 42, COMPETES_WITH: 18`.
+The empty `()` on both ends means "any node, don't care what" — this only cares about the relationship. Groups all `RELATED_TO` edges by their `relation_type` value and counts how many of each exist — real current numbers: `RELATED_TO (the catch-all): 204, LOCATED_IN: 83, PRODUCES: 45, ...` down to 15 distinct types total. (An earlier version of this note used `SUPPLIES` as the example — that type has since been removed from the ontology entirely, since zero relationships of that type were ever extracted from this corpus. See `docs/WHAT_WE_DID_AND_WHY.md` §4.)
 
 **Collect into a list instead of counting:**
 ```cypher
@@ -193,11 +193,11 @@ Run this twice, you still get exactly one node. This is *why* `load_to_neo4j.py`
 
 **Creating a relationship the same way:**
 ```cypher
-MATCH (a:Entity {entity_key: "apple-inc"}), (b:Entity {entity_key: "foxconn"})
-MERGE (a)-[r:RELATED_TO {source_chunk_id: "apple-inc-2024-0058"}]->(b)
-SET r.relation_type = "SUPPLIES"
+MATCH (a:Entity {entity_key: "apple-inc"}), (b:Entity {entity_key: "digital-markets-act"})
+MERGE (a)-[r:RELATED_TO {source_chunk_id: "apple-inc-2024-0026"}]->(b)
+SET r.relation_type = "SUBJECT_TO"
 ```
-First finds the two already-existing entity nodes by their keys, then finds-or-creates a `RELATED_TO` edge between them (keyed by which chunk sourced it, so the same fact from a different chunk creates a separate edge rather than colliding), then sets its type. This is the exact pattern `upsert_relationship()` uses.
+First finds the two already-existing entity nodes by their keys, then finds-or-creates a `RELATED_TO` edge between them (keyed by which chunk sourced it, so the same fact from a different chunk creates a separate edge rather than colliding), then sets its type. This is the exact pattern `upsert_relationship()` uses — and this specific edge is real, so running it is safe and idempotent (it'll just re-set the same values on the same real edge).
 
 ---
 
@@ -237,18 +237,18 @@ Instead of baking a value into the query text, use a `$parameter`:
 MATCH (e:Entity {name: $entity_name})
 RETURN e
 ```
-This is exactly what `upsert_entity(tx, entity, record)` in `load_to_neo4j.py` does — the Cypher text is a fixed template, and Python passes in `chunk_id`, `name`, `entity_type`, etc. as parameters via `tx.run(query, chunk_id=..., name=...)`. **This is also the security mechanism the guide insists on for Phase 3**: never let an LLM write the query text itself, only let it fill in parameter values into a template you already wrote.
+This is exactly what `upsert_entity(tx, entity, record)` in `load_to_neo4j.py` does — the Cypher text is a fixed template, and Python passes in `chunk_id`, `name`, `entity_type`, etc. as parameters via `tx.run(query, chunk_id=..., name=...)`. **This is also the security mechanism Phase 3's router relies on** (now built — `src/kgrag/graph_retrieval.py`): the model never writes the query text itself, only fills in parameter values (entity names) into templates you already wrote.
 
 ---
 
 ## 10. Paths — useful for "how are these two things connected"
 
 ```cypher
-MATCH path = (a:Entity {name: "Apple Inc."})-[:RELATED_TO*1..3]-(b:Entity {name: "Samsung"})
+MATCH path = (a:Entity {name: "Apple Inc."})-[:RELATED_TO*1..3]-(b:Entity {name: "European Union"})
 RETURN path
 LIMIT 5
 ```
-`*1..3` means "1 to 3 hops, any number of relationships in between" — finds a connection even if it's not direct. Useful for genuinely multi-hop questions.
+`*1..3` means "1 to 3 hops, any number of relationships in between" — finds a connection even if it's not direct. Real 2-hop path in your graph: `Apple Inc. -[SUBJECT_TO]-> Digital Markets Act -[LOCATED_IN]-> European Union` — Apple isn't directly linked to the EU, but this pattern finds the connection through the DMA anyway. Useful for genuinely multi-hop questions, and this is the actual mechanism `graph_retrieval.py::entity_paths_between()` uses.
 
 ---
 
@@ -256,10 +256,10 @@ LIMIT 5
 
 ```cypher
 MATCH (e:Entity {name: "Apple Inc."})
-WHERE EXISTS { (e)-[:RELATED_TO]->(:Entity {name: "Samsung"}) }
+WHERE EXISTS { (e)-[:RELATED_TO]->(:Entity {name: "Android"}) }
 RETURN e.name
 ```
-"Give me Apple only if it's directly related to Samsung" — doesn't return the relationship itself, just filters.
+"Give me Apple only if it's directly related to Android" — doesn't return the relationship itself, just filters. (Real edge: `Apple Inc. -[COMPETES_WITH]-> Android`.)
 
 ---
 
@@ -295,8 +295,8 @@ RETURN e.name
 
 ## What actually matters for this project
 
-You don't need to memorize all of Cypher. The patterns you'll actually reuse in Phase 3 (routing) are:
-1. **Entity linking**: `MATCH (e:Entity) WHERE toLower(e.name) CONTAINS toLower($question_entity) RETURN e` — turning a name from a user's question into a real graph node.
-2. **Relationship lookup**: `MATCH (a:Entity {entity_key: $key})-[r:RELATED_TO]->(b) RETURN a, r, b` — the actual "answer this relationship question" query.
-3. **Multi-hop traversal**: the `*1..3` pattern from section 10, for genuinely multi-hop questions.
-4. **Parameterized templates**: section 9 — every query you write for Phase 3 should take `$parameters`, never string-concatenate user input into Cypher directly.
+You don't need to memorize all of Cypher. These are the four patterns Phase 3 actually ended up using — now real, working code in `src/kgrag/graph_retrieval.py`, not just planned:
+1. **Entity linking**: `resolve_entity()` — exact match first (`WHERE toLower(e.name) = toLower($name)`), falling back to `CONTAINS` fuzzy matching only when nothing matches exactly. Turning a name from a user's question into a real graph node turned out to have a real bug in it — a bare name like "Apple" fuzzy-matched 5 different entities (the company + 4 products) before the exact-match-first fix.
+2. **Relationship lookup**: `entity_neighbors()` — `MATCH (a:Entity {entity_key: $key})-[r:RELATED_TO]->(b) RETURN a, r, b`, the actual "answer this relationship question" query.
+3. **Multi-hop traversal**: `entity_paths_between()` — the `*1..3` pattern from section 10, but constrained between two *specific* named entities rather than fanning out from one. Turned out this specificity mattered a lot: fanning out from a single hub-like entity ("Apple Inc.", connected to nearly everything) returned 30-50 irrelevant facts; requiring the path to reach a *second* named entity cut that down to just the relevant ones.
+4. **Parameterized templates**: section 9 — every query in `graph_retrieval.py` takes `$parameters` (entity names/keys), never string-concatenates user input into Cypher. The router (`router.py`) only ever picks *which* template to call and *what* parameters to pass — it never generates Cypher text itself.

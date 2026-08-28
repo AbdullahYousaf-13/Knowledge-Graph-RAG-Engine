@@ -37,7 +37,8 @@ Free courses mapped to Project 1's concepts, in the order to take them. Check it
   LangGraph -> RAG With MongoDB Vector Search -> RAG Evaluation Crash Course.
 
   Covers: building an actual vector DB pipeline end-to-end (reinforces `build_pgvector_index.py`),
-  advanced retrieval (Phase 3 routing territory), and RAG evaluation (Phase 4/5 vocabulary) —
+  advanced retrieval (Phase 3 routing territory, now built — see `src/kgrag/router.py`), and RAG
+  evaluation (Phase 4/5 vocabulary) —
   replaces the "Vector Databases" and "Building and Evaluating Advanced RAG" DeepLearning.AI
   entries previously here, removed per feedback that the DL.AI teaching style wasn't working.
 
@@ -49,7 +50,9 @@ Free courses mapped to Project 1's concepts, in the order to take them. Check it
 - [ ] **Neo4j & Generative AI Certification** (Neo4j GraphAcademy, ~18 hrs full prep path + 1 hr exam, free)
   ```
   https://graphacademy.neo4j.com/certifications/genai-certification/
-  Covers: routing, entity linking, Text2Cypher, hybrid search — this is Phase 3 (routing) taught before you build it.
+  Covers: routing, entity linking, Text2Cypher, hybrid search — this is Phase 3 (routing) territory;
+  Phase 3 itself is now built (87.5% measured routing accuracy), so this course would be reinforcement
+  rather than prep at this point.
   The ~18 hrs is the full recommended 10-course prep path; you can take just the specific
   courses you need (e.g. "Neo4j & GenerativeAI Fundamentals") without doing all 10 before
   attempting the 1-hr exam.
@@ -73,3 +76,5 @@ Free courses mapped to Project 1's concepts, in the order to take them. Check it
 ## Notes
 
 Add anything you learn that surprises you, or that contradicts what's in `ML_CONCEPTS_NOTES.md`, here — then update the notes file to match.
+
+- **Supervisor-assigned exercise (Google Colab): raw `bert-base-uncased` vs `bert-base-nli-mean-tokens` vs this project's `all-MiniLM-L6-v2`, same 225 chunks + 21 real eval questions.** Result: MiniLM (22M params) beat raw BERT (110M params) by ~12x on MRR (0.781 vs 0.064) — a smaller model, decisively better. Fine-tuning BERT the Sentence-BERT way helped (MRR 0.163, ~2.6x better than raw BERT) but still fell far short of MiniLM, because *how much and how diverse* the fine-tuning data is matters as much as whether fine-tuning happened at all. Full writeup: `ML_CONCEPTS_NOTES.md` §5.8.

@@ -72,7 +72,7 @@ The lesson extends the same idea beyond images: **sentence transformers** genera
 | VAE encoder half | `all-MiniLM-L6-v2` (a pretrained sentence-transformer, not something you train yourself, and not a VAE — but the same "compress meaning into a fixed vector" idea) |
 | 2-dimensional bottleneck (for visualization) | 384-dimensional real embedding (too many dimensions to plot directly) |
 | MNIST digit clustering | Your SEC filing chunks clustering by topic in `sec_chunk_embeddings` |
-| The four distance metrics | pgvector's `vector_cosine_ops` index specifically uses cosine similarity — see `ivfflat` notes in `ML_CONCEPTS_NOTES.md` §5.5 |
+| The four distance metrics | pgvector's `vector_cosine_ops` index specifically uses cosine similarity — see the HNSW notes in `ML_CONCEPTS_NOTES.md` §5.5 |
 
 ### Full code, verbatim from the actual lesson notebook
 
@@ -377,7 +377,7 @@ Once you have embeddings (previous lesson), the next question is: given a new qu
 
 **Why "semantic search" and "vector search" mean this:** vectors capture meaning (from the previous lesson), so finding data similar in *meaning* to a query reduces to finding the closest points in vector space — that's the entire mechanism behind semantic search.
 
-The lesson's real point, though, is to demonstrate **why brute-force doesn't scale** — setting up the motivation for Approximate Nearest Neighbors (ANN) in the next lesson, which is what this project's `ivfflat` index actually uses (see `ML_CONCEPTS_NOTES.md` §5.5).
+The lesson's real point, though, is to demonstrate **why brute-force doesn't scale** — setting up the motivation for Approximate Nearest Neighbors (ANN) in the next lesson, which is what this project's index actually uses (originally `ivfflat`, now `HNSW` — see `ML_CONCEPTS_NOTES.md` §5.5).
 
 ### Part 1: a tiny, visualizable example (20 points, 2 dimensions)
 
@@ -542,8 +542,8 @@ Takes the last measured single-query time and multiplies it out to estimate how 
 
 | Lesson concept | This project's equivalent |
 |---|---|
-| Brute-force kNN (`algorithm='brute'`) | What *isn't* used — this project skips straight to an approximate index, `ivfflat` |
-| Linear slowdown as dataset grows | The exact problem `ivfflat`'s clustering solves — see `ML_CONCEPTS_NOTES.md` §5.5 |
+| Brute-force kNN (`algorithm='brute'`) | What *isn't* used — this project uses an approximate index instead (`HNSW`, originally `ivfflat`) |
+| Linear slowdown as dataset grows | The exact problem approximate indexes like HNSW solve — see `ML_CONCEPTS_NOTES.md` §5.5 |
 | L2-normalized dot product = cosine similarity | Same math as pgvector's `vector_cosine_ops`, just computed by hand here instead of by the database |
 | 768-dimensional embeddings | This project uses 384-dimensional (`all-MiniLM-L6-v2`) — smaller, so even brute-force would be somewhat faster here, but the same scaling problem applies at large corpus sizes |
 | Manually timing queries at growing scale | Real justification for why the project's Neo4j/pgvector setup uses AuraDB/Supabase infrastructure instead of a naive in-memory search over 8GB-RAM hardware |

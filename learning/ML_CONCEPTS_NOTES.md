@@ -23,23 +23,25 @@ Artificial Intelligence (AI)
             ├── Structured Output
             └── Embeddings                  ← MiniLM lives here
                 ├── Vector Length (Magnitude / Norm)
+                ├── Why Training Objective Matters More Than Size
+                │   (raw BERT vs Sentence-BERT vs MiniLM, tested hands-on)
                 └── Vector / Semantic Search
                     ├── Vector Database (pgvector)
                     │   ├── B-trees (why they can't do this)
-                    │   ├── ivfflat (ANN index, used here)
-                    │   └── HNSW (alternative ANN index)
+                    │   ├── ivfflat (ANN index, used at first)
+                    │   └── HNSW (ANN index, used now — switched from ivfflat)
                     ├── Cosine Similarity
                     └── Chunking
 
 Retrieval-Augmented Generation (RAG)         ← the whole project's category
-├── Vector RAG (uses Embeddings above)
-├── Knowledge Graph RAG (uses Entities/Relationships below)
+├── Vector RAG (uses Embeddings above)         — built
+├── Knowledge Graph RAG (uses Entities/Relationships below) — built
 │   ├── Named Entity Recognition
 │   ├── Entity Resolution / Deduplication
 │   └── Graph Database (Neo4j + Cypher)
 ├── Hybrid RAG                               ← what YOU are building
-│   ├── Routing
-│   └── Citation Grounding
+│   ├── Routing                                — built (Phase 3, 87.5% measured accuracy)
+│   └── Citation Grounding                     — not built yet (Phase 4)
 └── Agents                                   ← a layer on top of all this
 ```
 
@@ -180,28 +182,21 @@ Read it top to bottom: AI is the biggest umbrella, everything else is a smaller 
 
 **In this project:** your `chunk_id`, `company`, `filing_year` columns get normal (implicit) B-tree-style indexing from Postgres — fast, exact, sorted lookups. Your `embedding` column needs a completely different index type, because "closest by meaning" isn't a sortable single-column question.
 
-### 5.5 ivfflat (the actual index type used in this project)
+### 5.5 HNSW (the actual index type used now — switched from ivfflat)
 
-**Simple definition:** The specific index pgvector uses to make "find nearest vectors" fast without checking every single row. Stands for **I**nverted **F**ile (with) **Flat** (compression — meaning vectors are stored full-precision, not compressed).
+**Simple definition:** The specific index pgvector uses to make "find nearest vectors" fast without checking every single row. Stands for **H**ierarchical **N**avigable **S**mall **W**orld — a multi-layer graph of connections between vectors, not a clustering scheme.
 
-**Analogy:** Instead of one librarian who's memorized every single book's relationship to every other book (which gets slower as the library grows), imagine the library is first divided into 100 themed neighborhoods (sci-fi, history, romance...), each with a "typical book" marking its center. When you ask for something similar to a given book, the librarian first figures out which 1-2 neighborhoods it belongs to, then only searches carefully within those — instead of scanning the entire library.
+**Analogy:** Imagine a library where every book has little strings tied to a handful of its most-similar neighbors, and there are a few "express" books at the top level connected to distant parts of the collection. Starting from one of those express books, you hop string to string, always moving toward books more similar to what you're looking for, narrowing in a few hops instead of walking every shelf.
 
-**How it's actually built** (happens once, when the index is created):
+**Why this replaced ivfflat:** ivfflat's clustering approach (grouping vectors into `lists` buckets via k-means, then only searching the nearest bucket) turned out to be a poor fit for this project's small corpus. With `lists = 100` set against only 225 rows, each bucket held roughly 2 vectors on average — far too fine-grained to be useful, and with the default `probes = 1` (only search the single nearest bucket), there was real risk of missing a genuinely close match sitting in a neighboring bucket. HNSW doesn't have this "how many buckets, how many rows per bucket" tuning problem at all — its graph-based structure adapts naturally to dataset size.
 
-1. **k-means clustering** groups all stored vectors into `lists` groups (in your schema, `lists = 100` — see `create_schema()` in `build_pgvector_index.py`). Each group gets a **centroid** — the "average point" of everything assigned to it.
-2. Every vector gets filed under whichever centroid it's closest to. This produces 100 separate "buckets" (the *inverted lists*) instead of one giant list of all vectors.
+**How it's actually configured in this project:** `src/kgrag/retrieval.py` pins `hnsw.ef_search` (default 64) — HNSW's equivalent of ivfflat's `probes`, controlling how many candidate neighbors get explored per search (higher = more accurate, slower). This is pinned specifically so retrieval results are reproducible for the recall@k evaluation — if `ef_search` silently varied between runs, comparing "did this change actually help" would be unreliable.
 
-**How it's actually queried** (happens every search):
+**Why it's still called "approximate":** even a well-built HNSW graph can occasionally miss the true single best match if it isn't reachable in the number of hops explored — same underlying idea as ivfflat's risk, just a different mechanism. This category of technique is called **Approximate Nearest Neighbor (ANN)** search, as opposed to exact/brute-force k-NN (compare against literally every row, guaranteed-correct but slow at scale). The industry term for "how often the approximate method actually finds the true best match" is **recall** — this is exactly what `scripts/eval_retrieval.py` measures (overall recall@5 of 0.54 on the current baseline).
 
-1. Compare the query vector against just the 100 centroids (cheap).
-2. Pick the closest centroid(s) to actually search inside — controlled by a `probes` setting (how many buckets to check). You didn't set this, so it defaults to **1** — only the single nearest bucket gets searched.
-3. Only scan the real vectors inside the probed bucket(s), instead of all 225 rows.
+**The build-time knobs:** HNSW's index-build parameters are `m` (how many connections each vector gets to its neighbors) and `ef_construction` (how thorough the search is while building those connections). This project uses `m=16, ef_construction=64` — reasonable defaults, not tuned against measured results, same honest caveat as several other parameters in this project (chunk size, hop count in graph traversal).
 
-**Why it's called "approximate":** if the true best match happens to sit in a neighborhood you didn't probe (e.g. right on a boundary between two clusters), you can miss it. This category of technique is called **Approximate Nearest Neighbor (ANN)** search, as opposed to exact/brute-force k-NN (compare against literally every row, guaranteed-correct but slow at scale). The industry term for "how often the approximate method actually finds the true best match" is **recall**.
-
-**Honest caveat about your specific setup:** with `lists = 100` on only 225 rows, each bucket holds ~2 vectors on average — quite fine-grained for this dataset size, and with `probes` defaulting to 1 there's real risk of missing decent matches that landed in a neighboring bucket. At 225 rows, brute-force (no index at all) would likely be near-instant anyway — the index isn't buying much yet, but it's the correct architecture to have in place if the corpus grows much larger later. If retrieval quality seems off during Phase 3 testing, raising `probes` (e.g. to 5–10) or lowering `lists` (e.g. to 10) are the first knobs to try.
-
-**The other major option, for context — HNSW:** pgvector also supports **HNSW** (Hierarchical Navigable Small World) indexes, which build a multi-layer graph of connections between vectors instead of clusters. Generally better recall than ivfflat at similar query speed, at the cost of slower/heavier index building. Not used here, but worth knowing as the "upgrade path" if ivfflat's approximation ever becomes a real problem.
+**For history — the ivfflat approach this replaced:** ivfflat groups vectors into `lists` clusters via k-means (each cluster gets a **centroid** — the "average point" of everything assigned to it), then at query time only searches inside the closest cluster(s). Reasonable at large scale, but pathological at 225 rows as explained above.
 
 ### 5.6 Cosine Similarity
 
@@ -258,6 +253,30 @@ chunk_C = [0.0, 0.9, 0.1]   →  "The company faces ongoing litigation risk"
 
 **In this project:** `prepare_sec_filings.py` splits each 10-K into ~2,600-character, paragraph-aware pieces (454 total across 5 years). This directly feeds both the embedding step and the extraction step.
 
+### 5.8 Why Training Objective Matters More Than Model Size (tested hands-on, not just read about)
+
+**Simple definition:** A bigger model with more parameters doesn't automatically produce better embeddings. What actually determines embedding quality is *what the model was specifically trained to do* — and whether it was ever taught "make similar meanings produce similar vectors" at all.
+
+**Where this came from:** your supervisor asked you to run `bert-base-uncased` on Google Colab and compare it against your project's `all-MiniLM-L6-v2`, to see the difference for yourself rather than take it on faith. You actually ran this — three real models, on your own 225 chunks and 21 real evaluation questions:
+
+| Model | Parameters | Ever trained for "similar meaning → similar vector"? | MRR | hit@5 |
+|---|---|---|---|---|
+| `bert-base-uncased` (raw, mean-pooled) | 110M | No — only trained to guess missing words | 0.064 | 0.095 |
+| `bert-base-nli-mean-tokens` (SBERT-fine-tuned BERT) | 110M | Yes, but only on ~570K pairs (2019, one dataset) | 0.163 | 0.286 |
+| `all-MiniLM-L6-v2` (yours) | 22M | Yes, on 1 billion+ pairs, many diverse sources, via knowledge distillation from a stronger teacher model | 0.781 | 0.905 |
+
+**The surprising part:** the *smallest* model (MiniLM, 22M params) beat the *biggest* one (BERT-base, 110M params) by roughly **12x on MRR**. Size went the "wrong" direction — proof that parameter count isn't what determines embedding quality here.
+
+**Why raw BERT failed so badly — the anisotropy problem:** BERT was trained only on masked-word prediction ("guess the blanked-out word") and next-sentence prediction. Nobody ever told it "these two sentences mean the same thing, place them near each other." The practical effect (a well-documented finding from the original Sentence-BERT paper, Reimers & Gurevych 2019): when you average-pool BERT's raw token outputs into one sentence vector, most sentences end up clustered artificially close together in vector space regardless of what they actually say — dominated by shared common subwords and sentence length rather than meaning. Cosine similarity between two such vectors ends up close to meaningless as a relevance signal. `hit@1: 0.0000` in your test — it never once got the #1 answer right across 21 questions — is what that looks like in practice.
+
+**Why fine-tuning helped, but not enough on its own:** `bert-base-nli-mean-tokens` is literally the same BERT architecture, given the Sentence-BERT training treatment — teaching it, via example sentence pairs, to actually place similar meanings near each other. This closed some of the gap (roughly 2.6x better MRR than raw BERT) but still fell far short of MiniLM. The reason: *how much and how diverse* that training is matters enormously too. NLI's ~570K pairs from one source (2019) isn't remotely comparable to MiniLM's training on over a billion pairs pulled from many different kinds of text (paraphrases, question-answer pairs, forum comments, academic citations).
+
+**The two-layer lesson to remember:**
+1. **Training objective matters** — this is why raw BERT (no embedding-specific training at all) fails completely.
+2. **Training scale and diversity matter just as much** — this is why even a properly fine-tuned but narrowly-trained model still loses badly to one trained at much greater scale and diversity, despite both using the same underlying technique.
+
+**In this project:** this is the concrete, measured reason `all-MiniLM-L6-v2` was the right practical choice for `build_pgvector_index.py` and `src/kgrag/retrieval.py` — not because it's the biggest or newest model, but because it was specifically, extensively trained for exactly the task this project needs (semantic search), and the real numbers above prove that training regime beats raw model size decisively.
+
 ---
 
 ## 6. Retrieval-Augmented Generation (RAG)
@@ -289,20 +308,20 @@ Notice this is a slightly wider framing than the notes above (which centered mai
 | 1. Document Ingestion | Load and chunk raw files | `prepare_sec_filings.py` |
 | 2. Embeddings Creation | Convert chunks into vectors | `build_pgvector_index.py` (`all-MiniLM-L6-v2`) |
 | 3. Vector Database Storage | Index those embeddings | pgvector / `sec_chunk_embeddings` (§5.3–5.5) |
-| 4. Query Processing | Convert the *user's question* into a vector | Not built yet — Phase 3 |
-| 5. Similarity Retrieval | Find the closest matching chunks | Not built yet — Phase 3 (mechanism already exists via pgvector, just not wired to a live question) |
+| 4. Query Processing | Convert the *user's question* into a vector | **Built** — `retrieval.embed_query()`, called by `router.execute_route()` |
+| 5. Similarity Retrieval | Find the closest matching chunks | **Built** — `retrieval.vector_search()`, wired to live questions via the router |
 | 6. Context Augmentation | Combine retrieved chunks + original question into one prompt | Not built yet — Phase 4 |
 | 7. Response Generation | LLM answers using that augmented context | Not built yet — Phase 4 |
 
-Steps 1–3 are exactly what you've already built (Phases 1–2). Steps 4–7 are exactly Phases 3–4 — his pipeline and this project's phase breakdown line up almost one-to-one, which is a good sign you're building something structurally standard, not something idiosyncratic.
+Steps 1–5 are exactly what you've already built (Phases 1–3). Steps 6–7 are exactly Phase 4 — his pipeline and this project's phase breakdown line up almost one-to-one, which is a good sign you're building something structurally standard, not something idiosyncratic.
 
 **Tooling note, worth flagging honestly:** he teaches this using **LangChain** (an orchestration framework that wraps document loaders, text splitters, embedding calls, and vector-store queries into one library). This project deliberately does **not** use LangChain — everything is hand-written directly against the Gemini API, `sentence-transformers`, Neo4j's driver, and `psycopg`. Neither approach is "more correct" — LangChain trades some transparency for convenience/less boilerplate; this project's raw approach trades more boilerplate for full visibility into exactly what every step does (which has mattered several times already, e.g. debugging the `ivfflat`/extension-creation-order bug would have been harder to spot through a framework's abstraction layer).
 
-**Advanced techniques he mentions** (beyond this project's current scope, but worth knowing the names): hybrid search, multi-query retrieval, contextual compression, and **query routing** — that last one is literally this project's Phase 3, confirming "routing" is a standard, named technique in the field, not something specific to this project's design.
+**Advanced techniques he mentions** (worth knowing the names, even beyond what's built): hybrid search, multi-query retrieval, contextual compression, and **query routing** — that last one is literally this project's Phase 3, now built and measured (`src/kgrag/router.py`, 87.5% accuracy), confirming "routing" is a standard, named technique in the field, not something specific to this project's design.
 
 ### Walkthrough: One Question, Start to Finish
 
-Everything below is easier to grasp as one continuous story than as separate definitions, so here's a single example question walked through end-to-end. Worth noting up front: sections 1–5 all map to code you've actually run and seen output from — this section is the first place we talk about something **not built yet** (Phases 3–4), so it's naturally more abstract. You have all the ingredients, you just haven't run the final recipe.
+Everything below is easier to grasp as one continuous story than as separate definitions, so here's a single example question walked through end-to-end. Worth noting up front: sections 1–5 all map to code you've actually run and seen output from — the retrieval/routing side of sections 6+ is now real code too (Phases 1-3); only the final answer-generation step (Phase 4) is still ahead, so that's the one part below still described in future tense.
 
 **Start here — what problem is RAG even solving?**
 
@@ -311,26 +330,26 @@ Imagine asking Gemini directly, with no help from your project at all: *"What di
 **RAG's fix:** before asking the LLM anything, first go **find the actual real passage** from Apple's real 2024 filing, hand *that exact text* to Gemini, and say "answer using only this — and you now have the receipt to prove it." Retrieval (find the real text) happens *before* Generation (the LLM writing an answer) — that's literally what "R-A-G" stands for.
 
 **Path A — Vector RAG, walked through:** Question: *"What did Apple say about supply chain risks?"*
-1. The question gets embedded (same `all-MiniLM-L6-v2` model used on your 225 chunks) → a 384-number vector.
-2. pgvector compares that vector against your 225 stored chunk-vectors, finds the closest by cosine similarity — **this machinery is already fully built and populated**, verified in Table Editor.
-3. The matching chunks' actual text gets pulled out — e.g. a real paragraph about component sourcing.
-4. That real text gets handed to Gemini: "answer using only this passage," producing a grounded answer.
+1. The question gets embedded (same `all-MiniLM-L6-v2` model used on your chunks) → a 384-number vector. **Built** — `retrieval.embed_query()`.
+2. pgvector compares that vector against your stored chunk-vectors, finds the closest by cosine similarity. **Built** — `retrieval.vector_search()`.
+3. The matching chunks' actual text gets pulled out — e.g. a real paragraph about component sourcing. **Built** — returned as `RetrievedChunk` objects, real text included.
+4. That real text gets handed to Gemini: "answer using only this passage," producing a grounded answer. **Not built yet** — this is Phase 4 (answer generation).
 
-Steps 1, 3, 4 aren't coded yet — only step 2 (the actual search machinery) exists so far.
+Steps 1-3 are wired together and real: `router.py`'s `execute_route()` calls exactly this chain whenever it decides a question needs the vector path. Only step 4 — actually generating a final written answer from what gets retrieved — remains.
 
-**Path B — Knowledge Graph RAG, walked through:** Question: *"Who does Apple compete with?"* — a relationship question, not a "find similar text" one. This whole path is **already fully complete**, you just haven't queried it with a real question yet — only hand-written Cypher in Neo4j Browser:
-1. **NER (already done)** — Gemini read each chunk and pulled out things like "Apple Inc.", "Samsung", tagging what type each is (`extract_sec_entities.py`) — why you have 279 Entity nodes.
-2. **Entity resolution (already done)** — "Apple Inc." mentioned in 40 different chunks didn't become 40 nodes; `MERGE` collapsed them into one, keyed by `entity_key`. That's why 279 entities ≠ raw mention count.
-3. **Graph storage (already done)** — those entities and relationships (e.g. "Apple COMPETES_WITH Samsung") live in Neo4j as connected nodes you've literally looked at in Neo4j Browser.
-4. **Cypher (already done, by you)** — every `MATCH (n)-[r]->(m) RETURN n, r, m` you've run is exactly what Knowledge Graph RAG would eventually do automatically.
+**Path B — Knowledge Graph RAG, walked through:** Question: *"What is the Epic Games lawsuit about?"* — a relationship question, not a "find similar text" one. This whole retrieval path is now **fully automated**, not just hand-written Cypher in Neo4j Browser anymore:
+1. **NER (already done)** — Gemini read each chunk and pulled out things like "Apple Inc.", "Epic Games, Inc.", tagging what type each is (`extract_sec_entities.py`) — why you have 277 Entity nodes.
+2. **Entity resolution (already done, at two points)** — first as a one-time cleanup pass (embedding-similarity search over all entities, human-reviewed merges), then baked directly into ingestion itself (`src/kgrag/entity_resolution.py`) so new extraction runs don't recreate the same duplicates.
+3. **Graph storage (already done)** — entities and relationships (e.g. "Epic Games, Inc. SUES Apple Inc.") live in Neo4j as connected nodes.
+4. **Automatic entity linking + Cypher (now built)** — `graph_retrieval.resolve_entity("Epic Games")` turns the plain-English name from a question into the real graph node, and `graph_search()` runs the actual parameterized Cypher traversal — no more writing Cypher by hand.
 
-What's missing: right now *you* write the Cypher by hand and read the result yourself. The RAG version means a program converts plain English into that Cypher automatically, runs it, and hands the resulting facts to Gemini to phrase into a natural answer.
+What's still missing: the resulting graph facts (e.g. `Epic Games, Inc. -[SUES]-> Apple Inc.`) get handed back as structured data, not yet phrased into a natural-language answer by Gemini — that phrasing step is Phase 4, same gap as Path A's step 4.
 
-**Path C — Hybrid RAG, the two pieces still missing:**
-1. **Routing** — before either path runs, something has to decide *which* path(s) to use. "Who does Apple compete with" → clearly graph. "What did Apple say about risk factors" → clearly vector. Some questions need both. Doesn't exist yet (Phase 3).
-2. **Citation grounding** — once Gemini writes a final answer from retrieved facts/passages, double-check every claim traces back to a real `chunk_id` or `source_chunk_id`, catching anything the LLM added that isn't actually supported. Doesn't exist yet (Phase 4).
+**Path C — Hybrid RAG:**
+1. **Routing — now built.** `src/kgrag/router.py` decides, per question, whether to run Path A, Path B, or both — using Gemini with structured output (same pattern as extraction) to classify the question, not a hand-coded rule list. Measured accuracy against a 24-question labeled set: **87.5% (21/24)**. It also estimates its own confidence and automatically runs *both* paths when unsure, instead of committing to a possibly-wrong single guess.
+2. **Citation grounding — still not built (Phase 4).** Once Gemini writes a final answer from retrieved facts/passages, double-check every claim traces back to a real `chunk_id` or `source_chunk_id`, catching anything the LLM added that isn't actually supported.
 
-**One sentence to hold onto:** everything under this heading describes one machine with two intake pipes (vector search, graph search) feeding one output nozzle (Gemini writing a grounded answer). Both intake pipes are fully built and tested. The nozzle, and the valve that decides which pipe(s) to open per question, are what's next.
+**One sentence to hold onto:** everything under this heading describes one machine with two intake pipes (vector search, graph search), a valve that decides which pipe(s) to open per question (the router), all feeding toward one output nozzle (Gemini writing a grounded answer). Both intake pipes and the valve are now fully built and tested. Only the final nozzle — turning retrieved facts/passages into one written, cited answer — remains (Phase 4).
 
 ### 6.1 Vector RAG
 
@@ -338,15 +357,15 @@ What's missing: right now *you* write the Cypher by hand and read the result you
 
 **Analogy:** Asking the librarian (from the embeddings analogy) to fetch the most relevant pages, then handing those pages to an expert to summarize an answer.
 
-**In this project:** Your Phase 2 pipeline — pgvector finds semantically similar chunks to a question.
+**In this project:** Built end-to-end from question to retrieved text — `src/kgrag/retrieval.py`, called by the router whenever a question routes to `vector` or `both`.
 
 ### 6.2 Knowledge Graph RAG
 
 **Simple definition:** The "retrieve" step instead pulls structured facts from a graph of entities and relationships, rather than free-text passages.
 
-**Analogy:** Instead of handing someone a stack of relevant pages, you hand them a family tree — precise, explicit connections ("Apple SUPPLIES iPhone components FROM Foxconn") rather than prose they have to re-read to figure out the connection.
+**Analogy:** Instead of handing someone a stack of relevant pages, you hand them a family tree — precise, explicit connections ("Epic Games, Inc. SUES Apple Inc.") rather than prose they have to re-read to figure out the connection.
 
-**In this project:** Your Phase 1 pipeline — Neo4j stores these explicit facts.
+**In this project:** Built end-to-end from question to retrieved facts — `src/kgrag/graph_retrieval.py`, called by the router whenever a question routes to `graph` or `both`. Getting this right took real debugging: an early version returned 30-50 irrelevant facts when asked about a hub-like entity ("Apple Inc." is connected to almost everything) — fixed by preferring paths *between* multiple named entities in a question over one entity's full neighborhood.
 
 #### 6.2.1 Named Entity Recognition (NER)
 
@@ -354,7 +373,7 @@ What's missing: right now *you* write the Cypher by hand and read the result you
 
 **Analogy:** Highlighting every proper noun in a paragraph with a colored marker and writing next to it what *kind* of thing it is.
 
-**In this project:** This is literally what Gemini does in `extract_sec_entities.py` — pulling out entities like "Apple Inc.", "iPhone", "Foxconn" and tagging each with a type (Company, Product, etc.).
+**In this project:** This is literally what Gemini does in `extract_sec_entities.py` — pulling out entities like "Apple Inc.", "iPhone", "Epic Games, Inc." and tagging each with a type, from a closed list of 8 (`Company`, `Person`, `Product`, `Location`, `Metric`, `Regulation`, `Organization`, `Other`).
 
 #### 6.2.2 Entity Resolution / Deduplication
 
@@ -362,7 +381,7 @@ What's missing: right now *you* write the Cypher by hand and read the result you
 
 **Analogy:** "Bob," "Robert," and "Bob Smith from accounting" showing up in different emails — a smart assistant realizes these are one person, not three.
 
-**In this project:** Every entity gets a `entity_key` (a slugified version of its name, e.g. "apple-inc"). When loading into Neo4j, `MERGE` on that key means "Apple Inc." mentioned in 40 different chunks becomes **one graph node**, not 40 duplicates — this is why your graph has 279 entity nodes even though way more than 279 entity *mentions* exist across 225 chunks.
+**In this project:** Every entity gets an `entity_key` (a slugified version of its name, e.g. "apple-inc"). When loading into Neo4j, `MERGE` on that key means "Apple Inc." mentioned in 40 different chunks becomes **one graph node**, not 40 duplicates — this is why your graph has 277 entity nodes even though 972 entity *mentions* exist across 225 chunks. But exact-key matching alone missed real duplicates worded differently ("Apple Inc." vs "Apple" would get *different* keys) — fixed twice: once as a one-time cleanup (embedding-similarity search over all 279 originally-extracted entities found 101 candidate pairs, 13 genuine groups merged after human review, landing at 265), and again by baking two-tier resolution directly into ingestion (`src/kgrag/entity_resolution.py`) so future extraction runs don't quietly recreate the same duplicates — auto-merging only above a conservative similarity bar, flagging anything less certain for review instead of guessing (landing at 277: a few borderline names correctly got left as separate entities rather than auto-merged).
 
 #### 6.2.3 Graph Database
 
@@ -394,7 +413,7 @@ What's missing: right now *you* write the Cypher by hand and read the result you
 
 **Analogy:** A receptionist at a hospital deciding whether you need the ER, a specialist, or both, based on what you say when you walk in.
 
-**In this project:** Not built yet — this is Phase 3. It'll look at a question and decide "this is a relationship question → query Neo4j" vs. "this is a definition question → query pgvector."
+**In this project:** Built — `src/kgrag/router.py`. Looks at a question and decides "this is a relationship question → query Neo4j" vs. "this is a definition question → query pgvector" vs. "both" vs. "out of scope" (not answerable from this corpus at all — different company, forward-looking guidance, etc.). Not a hand-coded rule list — Gemini makes the call, forced into a strict schema (same structured-output pattern as entity extraction) so it can only pick from those four options, never freeform text. It also self-rates its confidence, and the code automatically runs *both* retrieval paths when confidence is low rather than trusting a possibly-wrong single guess. Measured, not assumed: **87.5% accuracy (21/24)** against a hand-labeled question set, where the "correct" answer for each question was determined by actually running the retrieval and checking the real output, not by guessing from how the question sounded.
 
 #### 6.3.2 Citation Grounding
 
@@ -435,7 +454,9 @@ What's missing: right now *you* write the Cypher by hand and read the result you
 | Cypher             | English for connect-the-dots diagrams                        |
 | RAG                | Open-book exam instead of closed-book                        |
 | Hybrid RAG         | Using both a search engine AND a lawyer's reference system   |
-| Routing            | The hospital receptionist deciding ER vs. specialist         |
+| Routing            | The hospital receptionist deciding ER vs. specialist — built, 87.5% accuracy |
 | Citation grounding | A research paper where every sentence has a checked footnote |
+| HNSW               | Books tied by string to their nearest neighbors, hop to the answer |
+| Training objective | *What* a model practiced for — matters more than how big it is |
 
 
