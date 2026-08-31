@@ -66,21 +66,44 @@ def _all_starts(hay: str, needle: str) -> list[int]:
     return out
 
 
+def _section_at(pos: int, ranges: list[tuple[str, int, int]]) -> str | None:
+    for name, s, e in ranges:
+        if s <= pos < e:
+            return name
+    return None
+
+
 def locate_section(chunk_text: str, norm: str, ranges: list[tuple[str, int, int]]) -> str | None:
-    """Map a chunk to its section by finding where its (normalised) text sits in the body.
-    Widen the probe until the match is unique; give up rather than guess."""
+    """Map a chunk to its section. First anchor the chunk in the body text by widening a
+    prefix probe until it matches uniquely, then vote across ~8 evenly-spaced slices of
+    the chunk so a chunk that straddles a boundary is labelled by its *majority* content,
+    not its first line."""
     needle = " ".join(chunk_text.split())
+    anchor: int | None = None
     for width in (250, 500, 1000, 2000):
-        starts = _all_starts(norm, needle[:width])
+        starts = _all_starts(norm, needle[: min(width, len(needle))])
         if len(starts) == 1:
-            pos = starts[0]
-            for name, s, e in ranges:
-                if s <= pos < e:
-                    return name
-            return None
+            anchor = starts[0]
+            break
         if not starts:
             return None
-    return None
+    if anchor is None:
+        return None
+
+    votes: dict[str, int] = {}
+    step = max(1, len(needle) // 8)
+    for off in range(0, len(needle), step):
+        probe = needle[off : off + 60]
+        hits = _all_starts(norm, probe)
+        # prefer the occurrence nearest the anchor (handles repeated boilerplate)
+        near = min(hits, key=lambda h: abs(h - (anchor + off)), default=None)
+        name = _section_at(near, ranges) if near is not None else None
+        if name:
+            votes[name] = votes.get(name, 0) + 1
+
+    if not votes:
+        return _section_at(anchor, ranges)
+    return max(votes, key=votes.get)
 
 
 def main() -> None:
