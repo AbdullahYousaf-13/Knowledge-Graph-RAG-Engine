@@ -18,6 +18,7 @@ ceiling) — keeping unused years only created a confusing chunk-count discrepan
 **What:** Split each filing at real section boundaries (Item 1, Item 1A, etc.), then within each section, greedily pack whole paragraphs into ~2600-character chunks with 1-paragraph overlap between consecutive chunks.
 **Why:** Hand-built instead of using LangChain's `RecursiveCharacterTextSplitter` so overlap never cuts mid-sentence, and splitting respects actual SEC document structure LangChain doesn't know about.
 **Verdict:** Solid engineering choice. The 2600-char figure itself, however, was **not tuned or benchmarked** — it's a reasonable default (~400-500 words), not a value chosen by testing retrieval quality at different sizes. Honest gap, tied to #10 below.
+**Section-label bug — FIXED (Phase 4).** `SECTION_DEFINITIONS` only listed 9 of the ~22 10-K item headings, and the Item 7 pattern required an apostrophe that `extract_text` strips ("Management's" → "Managements"), so **Item 7 never matched** — the entire MD&A section was labelled `ITEM 3. LEGAL PROCEEDINGS` (the previous recognised heading). `trim_to_first_major_section` also trimmed to the table-of-contents copy of "Item 1", not the body. Surfaced when Phase 4 started printing `section_name` in citations (the Item 5 share-repurchase table showed as "Item 3"). Fixed: complete heading list, apostrophe-optional patterns, trim to the *last* "Item 1. Business". Because re-chunking would renumber every `chunk_id`, a migration (`scripts/fix_chunk_sections.py`) relabels the **existing** chunks in place (chunks.jsonl + pgvector + Neo4j) by matching each chunk's text back to its section — 39 substantive chunks corrected (18 of them MD&A), chunk ids / text / embeddings untouched.
 
 ## 3. Entity/relationship extraction: Gemini + Pydantic structured output (`extract_sec_entities.py`)
 
@@ -101,6 +102,7 @@ ceiling) — keeping unused years only created a confusing chunk-count discrepan
 - **Canned out-of-scope refusal, no LLM call.** When the router says `out_of_scope`, `/ask` returns a fixed message. Free, instant, and it's what Phase 5's "questions the system should refuse" expects.
 - **Aggregation had to be made citable.** `GraphRelationSummary` carried counts but no chunk ids, so aggregation answers had nothing to cite. Added `collect(DISTINCT r.source_chunk_id)[..5]` to the `entity_relation_summary` template — still a fixed parameterized query, the model touches none of it.
 - **Reused `GEMINI_MODEL` (free tier).** Phase 4 is ~1 model call per question (vs extraction's 225), so there is no quota pressure; `GEMINI_ANSWER_MODEL` overrides if ever needed.
+- **Citation snippets are claim-relevant windows,** not the head of the chunk. `_snippet_for()` slides a ~240-char window over the chunk and picks the position with the most overlap with the citing claim's keywords, so the preview shows the supporting sentence. Also flushed out the section-label bug above.
 
 **Verified** against the live databases on all four route types; the "no citation outside the retrieved set" invariant held on every response and is guarded by `tests/test_answer.py`.
 

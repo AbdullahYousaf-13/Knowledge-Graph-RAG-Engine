@@ -65,16 +65,39 @@ class TextExtractor(HTMLParser):
         return raw.strip()
 
 
+# All 10-K item headings, in document order. The regexes match a distinctive prefix of
+# each heading (the full titles are long and comma-laden); `canonical_section_name`
+# maps the matched text back to the canonical name on the left. Items 4/5/6/9/9B/9C and
+# the Part III items (10-14) were originally omitted because they carry little prose in
+# Apple's filings - but that left the section splitter with no boundary there, so any
+# chunk in those gaps (e.g. the Item 5 share-repurchase table) inherited the *previous*
+# recognised heading. Complete list = every chunk gets its real section.
 SECTION_DEFINITIONS: list[tuple[str, str]] = [
     ("ITEM 1. BUSINESS", r"ITEM\s+1\.\s+BUSINESS"),
     ("ITEM 1A. RISK FACTORS", r"ITEM\s+1A\.\s+RISK\s+FACTORS"),
     ("ITEM 1B. UNRESOLVED STAFF COMMENTS", r"ITEM\s+1B\.\s+UNRESOLVED\s+STAFF\s+COMMENTS"),
+    ("ITEM 1C. CYBERSECURITY", r"ITEM\s+1C\.\s+CYBERSECURITY"),
     ("ITEM 2. PROPERTIES", r"ITEM\s+2\.\s+PROPERTIES"),
     ("ITEM 3. LEGAL PROCEEDINGS", r"ITEM\s+3\.\s+LEGAL\s+PROCEEDINGS"),
-    ("ITEM 7. MANAGEMENT'S DISCUSSION AND ANALYSIS", r"ITEM\s+7\.\s+MANAGEMENT['’]S\s+DISCUSSION\s+AND\s+ANALYSIS"),
+    ("ITEM 4. MINE SAFETY DISCLOSURES", r"ITEM\s+4\.\s+MINE\s+SAFETY\s+DISCLOSURES"),
+    ("ITEM 5. MARKET FOR REGISTRANT'S COMMON EQUITY", r"ITEM\s+5\.\s+MARKET\s+FOR\s+(THE\s+)?REGISTRANT['’‘ʼ]?S?"),
+    ("ITEM 6. RESERVED", r"ITEM\s+6\.\s+(\[?RESERVED\]?|SELECTED\s+FINANCIAL\s+DATA)"),
+    # `extract_text` drops apostrophes ("Management's" -> "Managements"), so the
+    # apostrophe is optional in every possessive heading below.
+    ("ITEM 7. MANAGEMENT'S DISCUSSION AND ANALYSIS", r"ITEM\s+7\.\s+MANAGEMENT['’‘ʼ]?S\s+DISCUSSION\s+AND\s+ANALYSIS"),
     ("ITEM 7A. QUANTITATIVE AND QUALITATIVE DISCLOSURES ABOUT MARKET RISK", r"ITEM\s+7A\.\s+QUANTITATIVE\s+AND\s+QUALITATIVE\s+DISCLOSURES\s+ABOUT\s+MARKET\s+RISK"),
     ("ITEM 8. FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA", r"ITEM\s+8\.\s+FINANCIAL\s+STATEMENTS\s+AND\s+SUPPLEMENTARY\s+DATA"),
+    ("ITEM 9. CHANGES IN AND DISAGREEMENTS WITH ACCOUNTANTS", r"ITEM\s+9\.\s+CHANGES\s+IN\s+AND\s+DISAGREEMENTS\s+WITH\s+ACCOUNTANTS"),
     ("ITEM 9A. CONTROLS AND PROCEDURES", r"ITEM\s+9A\.\s+CONTROLS\s+AND\s+PROCEDURES"),
+    ("ITEM 9B. OTHER INFORMATION", r"ITEM\s+9B\.\s+OTHER\s+INFORMATION"),
+    ("ITEM 9C. FOREIGN JURISDICTIONS THAT PREVENT INSPECTIONS", r"ITEM\s+9C\.\s+DISCLOSURE\s+REGARDING\s+FOREIGN\s+JURISDICTIONS"),
+    ("ITEM 10. DIRECTORS, EXECUTIVE OFFICERS AND CORPORATE GOVERNANCE", r"ITEM\s+10\.\s+DIRECTORS,?\s+EXECUTIVE\s+OFFICERS"),
+    ("ITEM 11. EXECUTIVE COMPENSATION", r"ITEM\s+11\.\s+EXECUTIVE\s+COMPENSATION"),
+    ("ITEM 12. SECURITY OWNERSHIP OF CERTAIN BENEFICIAL OWNERS", r"ITEM\s+12\.\s+SECURITY\s+OWNERSHIP"),
+    ("ITEM 13. CERTAIN RELATIONSHIPS AND RELATED TRANSACTIONS", r"ITEM\s+13\.\s+CERTAIN\s+RELATIONSHIPS"),
+    ("ITEM 14. PRINCIPAL ACCOUNTANT FEES AND SERVICES", r"ITEM\s+14\.\s+PRINCIPAL\s+ACCOUNTANT\s+FEES"),
+    ("ITEM 15. EXHIBIT AND FINANCIAL STATEMENT SCHEDULES", r"ITEM\s+15\.\s+EXHIBITS?(\s+AND\s+FINANCIAL\s+STATEMENT\s+SCHEDULES)?"),
+    ("ITEM 16. FORM 10-K SUMMARY", r"ITEM\s+16\.\s+FORM\s+10-?K\s+SUMMARY"),
 ]
 
 SECTION_REGEX = re.compile("|".join(f"(?P<S{i}>{pattern})" for i, (_, pattern) in enumerate(SECTION_DEFINITIONS)), re.IGNORECASE)
@@ -119,10 +142,19 @@ def clean_text(text: str) -> str:
 
 
 def trim_to_first_major_section(text: str) -> str:
+    """Drop everything before the body of the filing.
+
+    The 10-K opens with a table of contents that lists every Item heading, which
+    would otherwise produce a full set of spurious (page-number-sized) sections. The
+    real body starts at the *last* occurrence of the first heading (Item 1. Business)
+    - the ToC copy comes first, the body copy second.
+    """
+    _, first_pattern = SECTION_DEFINITIONS[0]
+    body = list(re.finditer(first_pattern, text, re.IGNORECASE))
+    if body:
+        return text[body[-1].start() :].strip()
     match = SECTION_REGEX.search(text)
-    if not match:
-        return text
-    return text[match.start() :].strip()
+    return text[match.start() :].strip() if match else text
 
 
 def split_into_sections(text: str) -> list[tuple[str, str]]:

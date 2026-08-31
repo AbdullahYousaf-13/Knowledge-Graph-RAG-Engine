@@ -243,6 +243,37 @@ def validate_and_repair(
 # --- entry point --------------------------------------------------------
 
 
+def _snippet_for(chunk_text: str, claim_texts: list[str], *, width: int = SNIPPET_CHARS) -> str:
+    """A ~``width``-char window of the chunk centred on where it best overlaps the claims
+    that cite it - so the citation preview shows the supporting sentence, not just the
+    top of the chunk."""
+    words = " ".join(chunk_text.split())
+    if len(words) <= width:
+        return words
+
+    keywords = {
+        w.lower().strip(".,;:()[]'\"")
+        for t in claim_texts
+        for w in t.split()
+        if len(w) > 4
+    }
+    if not keywords:
+        return words[:width] + " ..."
+
+    low = words.lower()
+    best_start, best_score = 0, -1
+    for start in range(0, max(1, len(words) - width), 40):
+        window = low[start : start + width]
+        score = sum(1 for k in keywords if k in window)
+        if score > best_score:
+            best_score, best_start = score, start
+
+    snip = words[best_start : best_start + width].strip()
+    prefix = "... " if best_start > 0 else ""
+    suffix = " ..." if best_start + width < len(words) else ""
+    return f"{prefix}{snip}{suffix}"
+
+
 @dataclass
 class Citation:
     chunk_id: str
@@ -315,7 +346,11 @@ def answer_question(
         answer_md += f"\n\n_Note: {removed} statement(s) removed - not grounded in retrieved evidence._"
 
     ev_by_id = {e.chunk_id: e for e in evidence}
-    cited_ids = [cid for cl in draft.claims for cid in cl.citations]
+    claims_by_cid: dict[str, list[str]] = {}
+    for cl in draft.claims:
+        for cid in cl.citations:
+            claims_by_cid.setdefault(cid, []).append(cl.text)
+
     citations = [
         Citation(
             chunk_id=cid,
@@ -324,9 +359,9 @@ def answer_question(
             company=ev_by_id[cid].company,
             source_url=ev_by_id[cid].source_url,
             origin=ev_by_id[cid].origin,
-            snippet=" ".join(ev_by_id[cid].text.split())[:SNIPPET_CHARS],
+            snippet=_snippet_for(ev_by_id[cid].text, claims_by_cid.get(cid, [])),
         )
-        for cid in dict.fromkeys(cited_ids)
+        for cid in dict.fromkeys(cid for cl in draft.claims for cid in cl.citations)
         if cid in ev_by_id
     ]
 

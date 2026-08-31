@@ -22,6 +22,9 @@ supervisor-facing decision log see `WHAT_WE_DID_AND_WHY.md`._
   direct `db.<ref>.supabase.co` host — the direct host is IPv6-only and unreachable from this network.
 - Chunk size (2600 chars) was never tuned against retrieval quality — a reasonable default, not a measured choice.
 - The retrieval eval set is 27 queries — directional, not statistically tight.
+- `chunk.section_name` is best-effort metadata (display/citations only — no logic depends on it).
+  25 non-substantive chunks (cover page / ToC fragments, none embedded) still carry a
+  best-guess label; a chunk straddling a section boundary is labelled by its bulk.
 
 ## Phase 1 — complete (extract entities & relationships into Neo4j)
 
