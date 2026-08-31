@@ -23,3 +23,20 @@ pip install -r requirements.txt
 pip install -e .          # the src/kgrag/ shared library
 cp .env.example .env      # fill in Neo4j + Supabase + Gemini credentials
 ```
+
+## Ask a question
+
+```
+# HTTP API
+uvicorn kgrag.api:app
+curl -s -XPOST localhost:8000/ask -H 'content-type: application/json' \
+     -d '{"question":"What is the Epic Games lawsuit against Apple about?"}'
+
+# or the CLI
+python -m kgrag.answer "Which regulations is Apple subject to?"
+```
+
+`POST /ask` routes the question (graph / vector / both / out-of-scope), retrieves,
+merges graph facts and passages into one context block, and returns a prose answer plus
+`claims` and resolved `citations`. Every citation is validated to resolve to a chunk
+that was actually retrieved; claims that can't be grounded are dropped and counted.

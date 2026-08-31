@@ -39,12 +39,14 @@ class GraphFact:
 @dataclass
 class GraphRelationSummary:
     """One row of an aggregation query: how many of a given relation type an entity has,
-    and (a sample of) what's on the other end."""
+    and (a sample of) what's on the other end. ``source_chunk_ids`` is a few of the
+    chunks that sourced these edges, so aggregation claims stay citable (Phase 4)."""
     entity_key: str
     entity_name: str
     relation_type: str
     count: int
     targets: list[str]
+    source_chunk_ids: list[str]
 
 
 def resolve_entity(name: str, *, driver=None, limit: int = 5) -> list[EntityMatch]:
@@ -181,7 +183,8 @@ def entity_relation_summary(entity_key: str, *, driver=None, limit: int = 50) ->
                 RETURN a.entity_key AS entity_key, a.name AS entity_name,
                        r.relation_type AS relation_type,
                        count(*) AS count,
-                       collect(DISTINCT b.name)[..25] AS targets
+                       collect(DISTINCT b.name)[..25] AS targets,
+                       collect(DISTINCT r.source_chunk_id)[..5] AS source_chunk_ids
                 ORDER BY count DESC
                 LIMIT $limit
                 """,

@@ -31,13 +31,20 @@ build status see `LIVING_SPECS.md`.
 | Retrieval eval | Plain Python (`scripts/eval_retrieval.py`) + hand-labeled query set (`data/eval/`) | recall@k / hit@k / MRR by category; no benchmarking framework needed at this scale. |
 | Hosting | AuraDB + Supabase, both free tier | Dev machine has 8GB RAM, no GPU, no budget for paid tiers. |
 
-## Phase 3–5 — planned
+## Phase 3–4 — built
 
 | Stage | Tool | Why |
 |---|---|---|
-| Question routing | Plain Python + direct Gemini SDK call, structured output | Same pattern as extraction — a classify-and-dispatch step doesn't need a framework. |
-| Answer generation/merging | Plain Python + direct Gemini SDK | Consistent with the rest of the pipeline. |
-| API | FastAPI | Needed for the "Done When" criterion — a queryable endpoint. |
+| Question routing | Plain Python + direct Gemini SDK call, structured output (`src/kgrag/router.py`) | Same pattern as extraction — a classify-and-dispatch step doesn't need a framework. Few-shot prompt returns `path` + `query_type`; `query_type` selects a parameterized Cypher template. |
+| Answer generation/merging | Plain Python + direct Gemini SDK, structured output (`src/kgrag/answer.py`) | One `chunk_id`-keyed evidence pool from both retrieval paths; Gemini returns `{answer_markdown, claims:[{text, citations}]}`; a validate-and-repair loop guarantees every citation resolves to a retrieved chunk. |
+| API | FastAPI, synchronous `POST /ask` (`src/kgrag/api.py`) | The "Done When" criterion — a queryable endpoint. Sync is fine for ~1 LLM call per request. |
+| Answer model | `GEMINI_ANSWER_MODEL` env, falls back to `GEMINI_MODEL` | Free tier; ~1 call/question so no quota concern. |
+
+## Phase 5 — planned
+
+| Stage | Tool | Why |
+|---|---|---|
+| Benchmark | Plain Python | Labeled-set recall/accuracy comparison at this scale needs no framework. |
 
 **No LangChain, anywhere in this project.** A framework adds overhead without adding
 value for steps this project implements directly with a couple of SDK calls. Revisit only

@@ -14,7 +14,7 @@ supervisor-facing decision log see `WHAT_WE_DID_AND_WHY.md`._
   and FY2022 were also downloaded and chunked, then removed entirely once the scope was fixed.)
 - **Infra:** AuraDB (Neo4j) and Supabase (Postgres+pgvector) free tiers, live; credentials in
   local `.env` (gitignored).
-- **Phases 1 and 2 are complete.** Next: Phase 3 (question routing).
+- **Phases 1–4 are complete.** Next: Phase 5 (benchmark vs. vector-only baseline).
 
 ## Known gotchas
 
@@ -145,8 +145,39 @@ supervisor-facing decision log see `WHAT_WE_DID_AND_WHY.md`._
   ("What's the deal with Apple and its partners?", confidence 0.3) correctly triggered the
   fallback and both paths ran.
 
-## Next: Phase 4 — merge graph and vector results into one grounded answer
+## Phase 4 — complete (merge graph + vector into one grounded answer)
 
-- Convert graph paths into readable statements, combine with retrieved passages into
-  one context block, deduplicate overlapping evidence, require a citation for every
-  claim. Plain Python + Gemini SDK, FastAPI endpoint — no LangChain.
+- **`src/kgrag/answer.py`** — the synthesis layer.
+  - `build_evidence()` collapses `execute_route()`'s output into one `Evidence` pool keyed
+    by `chunk_id`, with `origin` ∈ {`vector`, `graph`, `both`}. Graph facts resolve their
+    `source_chunk_id` to the full chunk text (`retrieval.get_chunks_by_ids()`, a new PK
+    fetch) and keep their extraction `description` as a one-line statement.
+  - `render_context()` renders two labelled sections — `## GRAPH-DERIVED FACTS` (statement
+    + source text) and `## PASSAGES` (vector text). Dedup is by `chunk_id`; a chunk from
+    both paths appears once as `both`.
+  - `synthesize()` — Gemini structured output `{answer_markdown, claims:[{text, citations}]}`
+    (`GEMINI_ANSWER_MODEL` → `GEMINI_MODEL`; free tier, one call per question).
+  - `validate_and_repair()` — re-prompts (default 2 retries) while any claim cites a
+    `chunk_id` outside the evidence pool, then **drops** the still-unsupported claims and
+    reports `claims_removed`. Invariant: the answer never cites a non-retrieved chunk
+    (`tests/test_answer.py`).
+  - `answer_question()` is the single entry point; `python -m kgrag.answer "<q>"` is the CLI.
+- **`src/kgrag/api.py`** — FastAPI. `POST /ask {question, k?, hops?}` → JSON
+  `{answer_markdown, claims, citations:[{chunk_id, section_name, filing_year, company,
+  source_url, origin, snippet}], claims_removed, out_of_scope, route}`. `GET /health`.
+  Synchronous. `out_of_scope` routes short-circuit to a canned refusal (no LLM call).
+- **Aggregation made citable:** `entity_relation_summary` (the `query_type == "aggregation"`
+  template) now also returns `collect(DISTINCT r.source_chunk_id)[..5]`, and
+  `GraphRelationSummary` gained `source_chunk_ids`.
+- **Verified against the live DBs** on four routes: `vector` (effective tax rate 24.1%,
+  cited), `both`/`connection` (Epic Games lawsuit, chunk `apple-inc-2023-0043` shows as
+  `both`), `graph`/`aggregation` (Apple's tax/regulatory obligations, cited to the sampled
+  chunks), and `out_of_scope` (FY2027 guidance → canned refusal). Citation invariant held
+  on every response.
+- Deps added: `fastapi`, `uvicorn[standard]`.
+
+## Next: Phase 5 — benchmark the hybrid system against the vector-only baseline
+
+- Stratified question set (single-hop / multi-hop / aggregation / out-of-scope), run both
+  the hybrid answerer and a vector-only baseline, report accuracy by hop count plus latency
+  and cost per query. Benchmark table goes at the top of the README.

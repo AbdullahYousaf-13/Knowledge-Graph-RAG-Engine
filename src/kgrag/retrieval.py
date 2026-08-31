@@ -36,6 +36,7 @@ class RetrievedChunk:
     text: str
     entity_keys: list[str]
     score: float  # cosine similarity in [-1, 1]; higher is closer
+    source_url: str | None = None  # EDGAR filing URL, for citation display
 
 
 @functools.lru_cache(maxsize=2)
@@ -78,7 +79,7 @@ def vector_search(
         params["ek"] = list(entity_keys)
 
     sql = f"""
-        SELECT chunk_id, company, filing_year, section_name, text, entity_keys,
+        SELECT chunk_id, company, filing_year, section_name, text, entity_keys, source_url,
                1 - (embedding <=> %(q)s::vector) AS score
         FROM {VECTOR_TABLE}
         {where}
@@ -106,10 +107,50 @@ def vector_search(
             section_name=r[3],
             text=r[4],
             entity_keys=list(r[5] or []),
-            score=float(r[6]),
+            source_url=r[6],
+            score=float(r[7]),
         )
         for r in rows
     ]
+
+
+def get_chunks_by_ids(ids: list[str], *, conn=None) -> dict[str, RetrievedChunk]:
+    """Primary-key fetch of chunks by id, keyed by ``chunk_id``. Used by the Phase 4
+    answerer to resolve a graph fact's ``source_chunk_id`` to full text + metadata,
+    so graph-derived and vector-derived evidence share one shape. ``score`` is 0.0
+    (not a similarity result)."""
+    if not ids:
+        return {}
+
+    sql = f"""
+        SELECT chunk_id, company, filing_year, section_name, text, entity_keys, source_url
+        FROM {VECTOR_TABLE}
+        WHERE chunk_id = ANY(%(ids)s)
+    """
+
+    own_conn = conn is None
+    conn = conn or connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql, {"ids": list(dict.fromkeys(ids))})
+            rows = cur.fetchall()
+    finally:
+        if own_conn:
+            conn.close()
+
+    return {
+        r[0]: RetrievedChunk(
+            chunk_id=r[0],
+            company=r[1],
+            filing_year=r[2],
+            section_name=r[3],
+            text=r[4],
+            entity_keys=list(r[5] or []),
+            source_url=r[6],
+            score=0.0,
+        )
+        for r in rows
+    }
 
 
 def _main() -> None:

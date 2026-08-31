@@ -58,12 +58,16 @@ See `LIVING_SPECS.md` for current data counts and build state, and `WHAT_WE_DID_
 
 ### Phase 4: Merge both sources into one grounded answer
 
-**Approach:** plain Python + direct Gemini SDK, FastAPI endpoint — no LangChain.
+**Approach:** plain Python + direct Gemini SDK, FastAPI endpoint — no LangChain. `src/kgrag/answer.py` + `src/kgrag/api.py`.
 
-- Convert graph paths into readable statements.
-- Combine graph facts and retrieved passages into one context block.
-- Deduplicate overlapping evidence.
-- Require a citation for every claim and verify that each citation resolves to retrieved data.
+- Convert graph paths into readable statements. — **Done.** Each `GraphFact.description` (a natural-language sentence written at extraction time) becomes a "FACT:" line under a `## GRAPH-DERIVED FACTS` heading, followed by the source chunk's full text.
+- Combine graph facts and retrieved passages into one context block. — **Done.** `build_evidence()` collapses everything into one `chunk_id`-keyed `Evidence` pool (`origin` = vector / graph / both); `render_context()` renders `## GRAPH-DERIVED FACTS` and `## PASSAGES` as labelled sections.
+- Deduplicate overlapping evidence. — **Done.** Merge is by `chunk_id`; a chunk retrieved by both paths appears once, marked `origin="both"`, carrying both its passage text and its graph statement(s).
+- Require a citation for every claim and verify that each citation resolves to retrieved data. — **Done.** Gemini returns structured `{answer_markdown, claims:[{text, citations}]}`; `validate_and_repair()` re-prompts (default 2 retries) while any claim cites a `chunk_id` not in the evidence pool, then drops the still-unsupported claims and reports `claims_removed`. The answer can never cite a chunk that was not retrieved (guarded by `tests/test_answer.py`).
+- `entity_relation_summary` (the aggregation Cypher) now also returns a sample of `source_chunk_id`s so aggregation claims are citable.
+- `POST /ask` (synchronous) → route → retrieve → build context → synthesize → validate → JSON `{answer_markdown, claims, citations, claims_removed, route, out_of_scope}`. `GET /health`. `out_of_scope` routes return a canned refusal with no LLM call.
+
+**Phase 4 is complete.** Run: `uvicorn kgrag.api:app` or `python -m kgrag.answer "<question>"`.
 
 ### Phase 5: Benchmark against plain vector RAG
 
