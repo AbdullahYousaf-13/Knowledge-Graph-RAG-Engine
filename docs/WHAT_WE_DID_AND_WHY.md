@@ -4,9 +4,12 @@ Detailed decision log. See `LIVING_SPECS.md` for the current build state. Every 
 
 ---
 
-## 1. Corpus: Apple 10-K filings (2021-2025) from SEC EDGAR
+## 1. Corpus: Apple 10-K filings (FY2023-2025) from SEC EDGAR
 
-**What:** 5 years of Apple's annual reports, downloaded as HTML from the public EDGAR API.
+**What:** 3 years of Apple's annual reports (fiscal 2023, 2024, 2025), downloaded as HTML from
+the public EDGAR API. FY2021 and FY2022 were downloaded and chunked early on, then removed
+entirely once the scope was fixed at 2023-2025 (the Gemini free-tier extraction quota set the
+ceiling) — keeping unused years only created a confusing chunk-count discrepancy.
 **Why:** 10-Ks are long, structured, and contain real business relationships (suppliers, competitors, risks) — good raw material for a knowledge graph, and free/public with no licensing issue.
 **Verdict:** Reasonable choice, no issue.
 
@@ -21,6 +24,7 @@ Detailed decision log. See `LIVING_SPECS.md` for the current build state. Every 
 **What:** Each chunk sent to Gemini with a Pydantic schema (`Entity`, `Relationship`, `ChunkExtraction`) forcing structured JSON output — no free-text parsing.
 **Why:** Structured output eliminates the failure mode of an LLM returning malformed/unparseable text; Gemini's free tier was used to avoid API cost, since this is an unpaid internship project.
 **Verdict:** Good technique. Retry/resume logic had real bugs found and fixed mid-project (a progress-tracking bug that permanently blocked retries, and a chunk-slicing bug that caused infinite reprocessing of the same chunks) — worth mentioning as debugging done, not a criticism of the approach.
+**Retry scope — FIXED.** `should_retry()` used to retry only quota/`429` errors; a schema `ValidationError`, an empty/truncated response, or a 5xx/network blip was treated as terminal. Now all of those are retried (bounded by `MAX_RETRIES`, with a short fixed backoff for the non-quota cases), and any chunk that still fails is appended to `data/processed/sec_filings/extractions_failed.jsonl` rather than lost to stdout. Structured output makes a `ValidationError` unlikely, but "validate every response and retry the failures" (the spec) now holds for every failure mode, not one.
 
 ## 4. Ontology constraint — FIXED, then tightened to match the original spec
 
@@ -49,7 +53,8 @@ Detailed decision log. See `LIVING_SPECS.md` for the current build state. Every 
 ## 8. Vector index type: `ivfflat` → `hnsw` — FIXED
 
 **Was:** `ivfflat` only (`lists=100`), `HNSW` never tried — not a trade-off, just what got built first. Over 225 rows, `lists=100` means ~2 rows per list, which is pathological for recall.
-**Now:** `scripts/backfill_entity_keys.py` dropped and recreated the embedding index as `hnsw (m=16, ef_construction=64)`; `build_pgvector_index.py` builds HNSW for fresh loads. Embeddings untouched. Query-time `hnsw.ef_search` is pinned (default 64) in `src/kgrag/retrieval.py` so recall is reproducible; `eval_retrieval.py --ef-search` can sweep the recall/latency trade-off.
+**Now:** `scripts/backfill_entity_keys.py` dropped and recreated the embedding index as `hnsw (m=16, ef_construction=64)`; `build_pgvector_index.py` builds HNSW for fresh loads. Embeddings untouched. Query-time `hnsw.ef_search` is set (default 64) in `src/kgrag/retrieval.py`.
+**ef_search tuned (spec: "tune ef_search").** `eval_retrieval.py --ef-sweep "32,64,100,200,400"` runs the full recall eval once per value plus a brute-force exact scan as the recall ceiling. Result: recall@k, hit@k and MRR are **identical at every value** (and equal to the exact ceiling) — with only 225 vectors the HNSW graph has no approximation loss, so `ef_search` has nothing to trade off. Kept at 64. The `recall@5 ≈ 0.54` is a metric ceiling (several gold sets have 6 chunks) plus embedding quality, not an index problem — now measured, not assumed. Sweep output: `data/eval/results/ef_sweep_20260828T121309Z.json`.
 
 ## 9. Entity link between pgvector and Neo4j — FIXED
 
@@ -70,9 +75,9 @@ Detailed decision log. See `LIVING_SPECS.md` for the current build state. Every 
 
 ## 12. Corpus scope mismatch (caught and fixed)
 
-**What happened:** Neo4j was trimmed to 2023-2025 (Gemini quota-bound), but pgvector originally kept all 5 years (2021-2025) since local embedding has no quota limit — leaving the two databases covering different years.
+**What happened:** Neo4j was trimmed to 2023-2025 (Gemini quota-bound), but pgvector originally kept all five downloaded years (FY2021-2025) since local embedding has no quota limit — leaving the two databases covering different years.
 **Why this was wrong:** a hybrid system needs both retrieval paths reasoning over the same facts; a vector hit from a year with zero graph coverage would break the premise.
-**Fix already applied:** pgvector rescoped to match Neo4j exactly (225 chunks, 2023-2025 only).
+**Fix applied:** pgvector rescoped to match Neo4j exactly (225 chunks, 2023-2025 only); later the FY2021/FY2022 raw HTML and chunked data were deleted from the repo altogether so `chunks.jsonl` (266 rows) matches the corpus.
 
 ## 13. Phase 3 routing: built, tested against real output, two real bugs fixed
 
@@ -80,14 +85,16 @@ Detailed decision log. See `LIVING_SPECS.md` for the current build state. Every 
 **Two real bugs found by testing, not assumed away:**
 1. Querying a hub entity like "Apple Inc." alone returned 30-50 irrelevant facts (it's connected to almost everything). Fixed by preferring direct paths *between* multiple named entities in a question over one entity's full neighborhood.
 2. A bare name like "Apple" fuzzy-matched 5 entities (the company + 4 products); picking the wrong one caused irrelevant paths. Fixed with exact-match-first resolution, falling back to a Company-type tiebreak only when still ambiguous.
-**Measured, not assumed:** routing accuracy 87.5% (21/24) against a hand-labeled set, where `expected_path` was assigned by actually running the router and graph search per question and checking real output — not guessed from wording.
-**Against the original spec's remaining asks:** added `RouteDecision.confidence` and a low-confidence fallback (`execute_route()` runs both paths below a 0.6 threshold, default), plus a persistent JSONL log of every routing decision (`data/logs/routing_log.jsonl`) — the spec is explicit this data can't be reconstructed later if skipped.
+**Measured, not assumed:** routing accuracy **96.3% (26/27)** against a hand-labeled set, where `expected_path` was assigned by actually running the router and graph search per question and checking real output — not guessed from wording. (Was 87.5% / 21-of-24; the jump is from adding few-shot examples, below, and 3 graph-heavy eval queries.)
+**Few-shot prompt (spec: "a few shot prompt"):** the router prompt was zero-shot — rich field descriptions, no worked examples. Added ~10 hand-written `(question → RouteDecision)` examples in `ROUTER_FEW_SHOT`, one per path plus the boundary cases the confusion matrix was missing (`both↔graph`, `vector↔both`). They are deliberately **disjoint from `data/eval/retrieval_queries.jsonl`** so the accuracy number stays a real held-out measurement. First draft over-routed regional financial comparisons to the graph (accuracy dipped to 85%); adding explicit "numeric / segment comparison = vector" counter-examples fixed that and lifted it to 96.3%.
+**Template library keyed by query type (spec wording):** `graph_search()` used to pick its Cypher template by counting resolved entities (1 ⇒ neighbours, 2+ ⇒ paths-between). Now `RouteDecision.query_type` (filled by the model, one of `connection` / `multi_hop` / `comparison` / `aggregation` / `none`) selects the template: paths-between for connection/multi-hop, per-entity tagged neighbourhoods for comparison, and a new `entity_relation_summary()` aggregation template (group an entity's relationships by type, with counts) for aggregation. The entity-count heuristic remains as the fallback when `query_type` is absent. The model still only ever supplies the enum and entity names — never Cypher text. Three eval queries were added to exercise the comparison / aggregation / multi-hop paths (24 → 27 queries).
+**Against the original spec's remaining asks:** added `RouteDecision.confidence` and a low-confidence fallback (`execute_route()` runs both paths below a 0.6 threshold, default), plus a persistent JSONL log of every routing decision (`data/logs/routing_log.jsonl`, now including `query_type`) — the spec is explicit this data can't be reconstructed later if skipped.
 **A real mistake made and fixed along the way:** re-running the Neo4j reload for the ontology trim (§4) used the loader code *before* the new entity-resolution logic (§5) was wired in. Since the source `extractions.jsonl` was never rewritten with post-merge names, this recreated all 14 previously-merged duplicates. Caught by checking Neo4j directly rather than trusting the script's printed summary, root-caused, and fixed by re-running the merge script (safe to repeat).
 
 ---
 
 ## Summary framing
 
-Phases 1 and 2 have working, idempotent, cost-conscious pipelines, and the three items originally skipped when they were first marked "complete" — ontology constraint (§4), entity resolution (§5), and retrieval-quality measurement (§10) — are now all done and verified. The vector index was also moved from `ivfflat` to HNSW (§8) and the two stores are now linked by entity (§9). Phase 3 (§13) is built, tested against real output rather than assumed, and closes the remaining gaps against the original spec (relationship-type count, ingestion-time resolution, confidence fallback, routing log).
+Phases 1 and 2 have working, idempotent, cost-conscious pipelines, and the three items originally skipped when they were first marked "complete" — ontology constraint (§4), entity resolution (§5), and retrieval-quality measurement (§10) — are now all done and verified. The vector index was also moved from `ivfflat` to HNSW (§8, `ef_search` then swept and confirmed flat) and the two stores are now linked by entity (§9). Phase 3 (§13) is built, tested against real output rather than assumed, and closes the remaining gaps against the original spec: relationship-type count, ingestion-time resolution, confidence fallback, routing log, extraction retry breadth (§3), few-shot router prompt and a query-type-keyed template library (§13).
 
-Remaining honest gaps, both minor: the 2600-char chunk size (§2) was never tuned against retrieval quality, and the retrieval eval set (§10) is only 24 queries — enough to catch regressions and gross failures, not to fine-tune. One deliberately skipped item: per-document cost budgeting/caching by document hash (from the original spec) doesn't map cleanly onto a free-tier Gemini setup with no dollar cost to budget, and was skipped by explicit agreement rather than overlooked.
+Remaining honest gaps, both minor: the 2600-char chunk size (§2) was never tuned against retrieval quality, and the retrieval eval set (§10) is only 27 queries — enough to catch regressions and gross failures, not to fine-tune. One deliberately skipped item: per-document cost budgeting/caching by document hash (from the original spec) doesn't map cleanly onto a free-tier Gemini setup with no dollar cost to budget, and was skipped by explicit agreement rather than overlooked.

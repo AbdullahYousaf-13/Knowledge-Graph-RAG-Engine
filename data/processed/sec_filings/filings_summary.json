@@ -1,20 +1,6 @@
 [
   {
     "company": "Apple Inc.",
-    "filing_year": "2021",
-    "filing_type": "10-K",
-    "file": "apple_2021_10k.html",
-    "chunk_count": 96
-  },
-  {
-    "company": "Apple Inc.",
-    "filing_year": "2022",
-    "filing_type": "10-K",
-    "file": "apple_2022_10k.html",
-    "chunk_count": 92
-  },
-  {
-    "company": "Apple Inc.",
     "filing_year": "2023",
     "filing_type": "10-K",
     "file": "apple_2023_10k.html",

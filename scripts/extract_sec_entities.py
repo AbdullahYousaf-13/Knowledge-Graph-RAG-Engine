@@ -12,7 +12,16 @@ from typing import Literal
 
 from dotenv import load_dotenv
 from google import genai
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
+
+
+class EmptyResponseError(RuntimeError):
+    """Gemini returned a response with no parseable structured output.
+
+    Raised (instead of silently returning None) so the retry loop treats an
+    empty/truncated response as a transient failure worth retrying, not a
+    terminal skip.
+    """
 
 EntityType = Literal[
     "Company",
@@ -52,6 +61,7 @@ OUTPUT_DIR = BASE_DIR / "data" / "processed" / "sec_filings"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUT_PATH = OUTPUT_DIR / "extractions.jsonl"
 PROGRESS_PATH = OUTPUT_DIR / "extractions_progress.json"
+FAILED_PATH = OUTPUT_DIR / "extractions_failed.jsonl"
 
 MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview")
 FILING_YEARS = {
@@ -132,6 +142,21 @@ def load_progress(path: Path) -> dict[str, dict[str, Any]]:
 
 def save_progress(path: Path, progress: dict[str, dict[str, Any]]) -> None:
     path.write_text(json.dumps(progress, indent=2, ensure_ascii=False), encoding="utf-8")
+
+
+def record_failure(chunk: dict[str, Any], attempts: int, exc: Exception) -> None:
+    """Append one line per chunk that exhausted all retries, so a failed run can
+    be inspected and re-driven later instead of the failure being lost to stdout."""
+    row = {
+        "chunk_id": chunk.get("chunk_id"),
+        "section_name": chunk.get("section_name"),
+        "filing_year": chunk.get("filing_year"),
+        "attempts": attempts,
+        "error_type": type(exc).__name__,
+        "error": str(exc)[:4000],
+    }
+    with FAILED_PATH.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(row, ensure_ascii=False) + "\n")
 
 
 def load_existing_chunk_ids(path: Path) -> set[str]:
@@ -301,9 +326,30 @@ def retry_delay_from_error(exc: Exception) -> float | None:
     return None
 
 
-def should_retry(exc: Exception) -> bool:
+TRANSIENT_MARKERS = (
+    "500", "502", "503", "504",
+    "UNAVAILABLE", "DEADLINE_EXCEEDED", "INTERNAL", "ABORTED",
+    "timeout", "timed out", "connection reset", "connection aborted",
+    "temporarily unavailable",
+)
+
+
+def is_quota_error(exc: Exception) -> bool:
     message = str(exc)
     return "429" in message or "RESOURCE_EXHAUSTED" in message or "quota" in message.lower()
+
+
+def should_retry(exc: Exception) -> bool:
+    """Retry on anything transient: quota, a schema-validation failure, an empty
+    response, or a 5xx / network blip. The spec's "retry the failures" - not just
+    the rate-limit ones. Only a genuinely terminal error (bad request, auth,
+    unknown) falls through to a permanent failure record."""
+    if isinstance(exc, (EmptyResponseError, ValidationError)):
+        return True
+    if is_quota_error(exc):
+        return True
+    message = str(exc)
+    return any(marker.lower() in message.lower() for marker in TRANSIENT_MARKERS)
 
 
 def paced_sleep(last_call_at: float | None) -> float:
@@ -345,7 +391,13 @@ Chunk text:
 """.strip()
 
 
-def extract_chunk(client: genai.Client, chunk: dict[str, Any]) -> ChunkExtraction | None:
+def extract_chunk(client: genai.Client, chunk: dict[str, Any]) -> ChunkExtraction:
+    """Call Gemini and parse the structured response.
+
+    Raises on failure rather than returning None: ``ValidationError`` if the JSON
+    doesn't fit the schema, ``EmptyResponseError`` if there's nothing to parse.
+    Both are retried by the caller (see ``should_retry``).
+    """
     response = client.models.generate_content(
         model=MODEL_NAME,
         contents=build_prompt(chunk),
@@ -360,9 +412,19 @@ def extract_chunk(client: genai.Client, chunk: dict[str, Any]) -> ChunkExtractio
         return parsed
     if parsed is not None:
         return ChunkExtraction.model_validate(parsed)
-    if getattr(response, "text", None):
-        return ChunkExtraction.model_validate_json(response.text)
-    return None
+
+    raw = getattr(response, "text", None)
+    if raw:
+        return ChunkExtraction.model_validate_json(raw)
+
+    finish = None
+    try:
+        finish = response.candidates[0].finish_reason
+    except Exception:
+        pass
+    raise EmptyResponseError(
+        f"no structured output (finish_reason={finish!r})"
+    )
 
 
 def main() -> None:
@@ -423,9 +485,6 @@ def main() -> None:
                 try:
                     last_call_at = paced_sleep(last_call_at)
                     extraction = extract_chunk(client, chunk)
-                    if extraction is None:
-                        print(f"[skip] {chunk_id} returned no structured output")
-                        break
                     extraction = post_process_extraction(chunk, extraction)
 
                     record = {
@@ -466,17 +525,24 @@ def main() -> None:
                         progress[chunk_id] = {
                             "status": "failed",
                             "attempts": attempt,
+                            "error_type": type(exc).__name__,
                             "error": str(exc),
                         }
                         save_progress(PROGRESS_PATH, progress)
-                        print(f"[error] {chunk_id}: {exc}")
+                        record_failure(chunk, attempt, exc)
+                        print(f"[error] {chunk_id} after {attempt} attempt(s): {type(exc).__name__}: {exc}")
                         break
 
-                    server_delay = retry_delay_from_error(exc)
-                    backoff = min(120.0, (2 ** (attempt - 1)) * 5.0)
-                    wait_seconds = max(server_delay or 0.0, backoff)
-                    wait_seconds = wait_seconds + random.uniform(0.0, 2.0)
-                    print(f"[retry] {chunk_id} attempt {attempt}/{MAX_RETRIES} after {wait_seconds:.1f}s: {exc}")
+                    if is_quota_error(exc):
+                        # Quota: honour any server-provided retryDelay, else exponential to 120s.
+                        server_delay = retry_delay_from_error(exc)
+                        backoff = min(120.0, (2 ** (attempt - 1)) * 5.0)
+                        wait_seconds = max(server_delay or 0.0, backoff)
+                    else:
+                        # Validation / empty / 5xx / network: short fixed backoff, mild growth.
+                        wait_seconds = min(20.0, 3.0 * attempt)
+                    wait_seconds += random.uniform(0.0, 2.0)
+                    print(f"[retry] {chunk_id} attempt {attempt}/{MAX_RETRIES} after {wait_seconds:.1f}s: {type(exc).__name__}: {exc}")
                     time.sleep(wait_seconds)
 
     print(f"\nDone. Wrote {written} extraction records to {OUTPUT_PATH.relative_to(BASE_DIR)}")

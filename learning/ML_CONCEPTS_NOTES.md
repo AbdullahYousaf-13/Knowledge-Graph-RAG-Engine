@@ -40,7 +40,7 @@ Retrieval-Augmented Generation (RAG)         ← the whole project's category
 │   ├── Entity Resolution / Deduplication
 │   └── Graph Database (Neo4j + Cypher)
 ├── Hybrid RAG                               ← what YOU are building
-│   ├── Routing                                — built (Phase 3, 87.5% measured accuracy)
+│   ├── Routing                                — built (Phase 3, 96.3% measured accuracy)
 │   └── Citation Grounding                     — not built yet (Phase 4)
 └── Agents                                   ← a layer on top of all this
 ```
@@ -251,7 +251,7 @@ chunk_C = [0.0, 0.9, 0.1]   →  "The company faces ongoing litigation risk"
 
 **Analogy:** You wouldn't hand someone an entire encyclopedia and ask "what's on page 402" — you'd hand them just that page.
 
-**In this project:** `prepare_sec_filings.py` splits each 10-K into ~2,600-character, paragraph-aware pieces (454 total across 5 years). This directly feeds both the embedding step and the extraction step.
+**In this project:** `prepare_sec_filings.py` splits each 10-K into ~2,600-character, paragraph-aware pieces (266 total across FY2023-2025, of which 225 are substantive). This directly feeds both the embedding step and the extraction step.
 
 ### 5.8 Why Training Objective Matters More Than Model Size (tested hands-on, not just read about)
 
@@ -317,7 +317,7 @@ Steps 1–5 are exactly what you've already built (Phases 1–3). Steps 6–7 ar
 
 **Tooling note, worth flagging honestly:** he teaches this using **LangChain** (an orchestration framework that wraps document loaders, text splitters, embedding calls, and vector-store queries into one library). This project deliberately does **not** use LangChain — everything is hand-written directly against the Gemini API, `sentence-transformers`, Neo4j's driver, and `psycopg`. Neither approach is "more correct" — LangChain trades some transparency for convenience/less boilerplate; this project's raw approach trades more boilerplate for full visibility into exactly what every step does (which has mattered several times already, e.g. debugging the `ivfflat`/extension-creation-order bug would have been harder to spot through a framework's abstraction layer).
 
-**Advanced techniques he mentions** (worth knowing the names, even beyond what's built): hybrid search, multi-query retrieval, contextual compression, and **query routing** — that last one is literally this project's Phase 3, now built and measured (`src/kgrag/router.py`, 87.5% accuracy), confirming "routing" is a standard, named technique in the field, not something specific to this project's design.
+**Advanced techniques he mentions** (worth knowing the names, even beyond what's built): hybrid search, multi-query retrieval, contextual compression, and **query routing** — that last one is literally this project's Phase 3, now built and measured (`src/kgrag/router.py`, 96.3% accuracy), confirming "routing" is a standard, named technique in the field, not something specific to this project's design.
 
 ### Walkthrough: One Question, Start to Finish
 
@@ -346,7 +346,7 @@ Steps 1-3 are wired together and real: `router.py`'s `execute_route()` calls exa
 What's still missing: the resulting graph facts (e.g. `Epic Games, Inc. -[SUES]-> Apple Inc.`) get handed back as structured data, not yet phrased into a natural-language answer by Gemini — that phrasing step is Phase 4, same gap as Path A's step 4.
 
 **Path C — Hybrid RAG:**
-1. **Routing — now built.** `src/kgrag/router.py` decides, per question, whether to run Path A, Path B, or both — using Gemini with structured output (same pattern as extraction) to classify the question, not a hand-coded rule list. Measured accuracy against a 24-question labeled set: **87.5% (21/24)**. It also estimates its own confidence and automatically runs *both* paths when unsure, instead of committing to a possibly-wrong single guess.
+1. **Routing — now built.** `src/kgrag/router.py` decides, per question, whether to run Path A, Path B, or both — using Gemini with structured output (same pattern as extraction) to classify the question, not a hand-coded rule list. Measured accuracy against a 27-question labeled set: **96.3% (26/27)** (it was 87.5% before ~10 few-shot examples were added to the prompt and tuned). The classifier also returns a `query_type` that picks which parameterized Cypher template runs, estimates its own confidence, and automatically runs *both* paths when unsure, instead of committing to a possibly-wrong single guess.
 2. **Citation grounding — still not built (Phase 4).** Once Gemini writes a final answer from retrieved facts/passages, double-check every claim traces back to a real `chunk_id` or `source_chunk_id`, catching anything the LLM added that isn't actually supported.
 
 **One sentence to hold onto:** everything under this heading describes one machine with two intake pipes (vector search, graph search), a valve that decides which pipe(s) to open per question (the router), all feeding toward one output nozzle (Gemini writing a grounded answer). Both intake pipes and the valve are now fully built and tested. Only the final nozzle — turning retrieved facts/passages into one written, cited answer — remains (Phase 4).
@@ -454,7 +454,7 @@ What's still missing: the resulting graph facts (e.g. `Epic Games, Inc. -[SUES]-
 | Cypher             | English for connect-the-dots diagrams                        |
 | RAG                | Open-book exam instead of closed-book                        |
 | Hybrid RAG         | Using both a search engine AND a lawyer's reference system   |
-| Routing            | The hospital receptionist deciding ER vs. specialist — built, 87.5% accuracy |
+| Routing            | The hospital receptionist deciding ER vs. specialist — built, 96.3% accuracy |
 | Citation grounding | A research paper where every sentence has a checked footnote |
 | HNSW               | Books tied by string to their nearest neighbors, hop to the answer |
 | Training objective | *What* a model practiced for — matters more than how big it is |

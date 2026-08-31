@@ -1,0 +1,1089 @@
+{
+  "aggregate": {
+    "n_scored": 24,
+    "by_category": {
+      "aggregation": {
+        "n": 4,
+        "MRR": 0.55,
+        "recall@1": 0.1458,
+        "hit@1": 0.5,
+        "recall@3": 0.2708,
+        "hit@3": 0.5,
+        "recall@5": 0.5,
+        "hit@5": 0.75,
+        "recall@10": 0.5,
+        "hit@10": 0.75
+      },
+      "multi-hop": {
+        "n": 8,
+        "MRR": 0.775,
+        "recall@1": 0.3125,
+        "hit@1": 0.75,
+        "recall@3": 0.375,
+        "hit@3": 0.75,
+        "recall@5": 0.5208,
+        "hit@5": 0.875,
+        "recall@10": 0.6042,
+        "hit@10": 0.875
+      },
+      "out-of-scope": {
+        "n": 3,
+        "mean_top1_score": 0.5872,
+        "mean_top5_floor_score": 0.5314
+      },
+      "single-hop": {
+        "n": 12,
+        "MRR": 0.75,
+        "recall@1": 0.3083,
+        "hit@1": 0.6667,
+        "recall@3": 0.45,
+        "hit@3": 0.8333,
+        "recall@5": 0.4806,
+        "hit@5": 0.8333,
+        "recall@10": 0.6194,
+        "hit@10": 0.8333
+      }
+    },
+    "mean_query_ms": 425.4,
+    "p90_query_ms": 435.8,
+    "MRR": 0.725,
+    "recall@1": 0.2826,
+    "hit@1": 0.6667,
+    "recall@3": 0.3951,
+    "hit@3": 0.75,
+    "recall@5": 0.4972,
+    "hit@5": 0.8333,
+    "recall@10": 0.5944,
+    "hit@10": 0.8333
+  },
+  "per_query": [
+    {
+      "id": "q001",
+      "category": "single-hop",
+      "question": "What are Apple's reportable operating segments?",
+      "relevant_chunk_ids": [
+        "apple-inc-2023-0009",
+        "apple-inc-2023-0073",
+        "apple-inc-2024-0009",
+        "apple-inc-2024-0074",
+        "apple-inc-2025-0009",
+        "apple-inc-2025-0076"
+      ],
+      "retrieved_chunk_ids": [
+        "apple-inc-2024-0074",
+        "apple-inc-2023-0073",
+        "apple-inc-2023-0009",
+        "apple-inc-2023-0076",
+        "apple-inc-2024-0009",
+        "apple-inc-2025-0009",
+        "apple-inc-2025-0076",
+        "apple-inc-2023-0013",
+        "apple-inc-2023-0059",
+        "apple-inc-2025-0080"
+      ],
+      "top_scores": [
+        0.5797,
+        0.5647,
+        0.5514,
+        0.5462,
+        0.5408
+      ],
+      "query_ms": 610.4,
+      "reciprocal_rank": 1.0,
+      "recall@1": 0.16666666666666666,
+      "hit@1": 1.0,
+      "recall@3": 0.5,
+      "hit@3": 1.0,
+      "recall@5": 0.6666666666666666,
+      "hit@5": 1.0,
+      "recall@10": 1.0,
+      "hit@10": 1.0
+    },
+    {
+      "id": "q002",
+      "category": "single-hop",
+      "question": "Who is Apple's independent registered public accounting firm, and since what year have they served?",
+      "relevant_chunk_ids": [
+        "apple-inc-2023-0076",
+        "apple-inc-2024-0077",
+        "apple-inc-2025-0079"
+      ],
+      "retrieved_chunk_ids": [
+        "apple-inc-2023-0076",
+        "apple-inc-2023-0074",
+        "apple-inc-2025-0080",
+        "apple-inc-2024-0075",
+        "apple-inc-2024-0086",
+        "apple-inc-2024-0077",
+        "apple-inc-2023-0085",
+        "apple-inc-2023-0054",
+        "apple-inc-2025-0058",
+        "apple-inc-2024-0056"
+      ],
+      "top_scores": [
+        0.6644,
+        0.6539,
+        0.634,
+        0.586,
+        0.5814
+      ],
+      "query_ms": 435.8,
+      "reciprocal_rank": 1.0,
+      "recall@1": 0.3333333333333333,
+      "hit@1": 1.0,
+      "recall@3": 0.3333333333333333,
+      "hit@3": 1.0,
+      "recall@5": 0.3333333333333333,
+      "hit@5": 1.0,
+      "recall@10": 0.6666666666666666,
+      "hit@10": 1.0
+    },
+    {
+      "id": "q003",
+      "category": "single-hop",
+      "question": "By what date was Apple required to comply with the EU Digital Markets Act?",
+      "relevant_chunk_ids": [
+        "apple-inc-2023-0025",
+        "apple-inc-2023-0033"
+      ],
+      "retrieved_chunk_ids": [
+        "apple-inc-2025-0034",
+        "apple-inc-2024-0026",
+        "apple-inc-2024-0045",
+        "apple-inc-2025-0036",
+        "apple-inc-2025-0045",
+        "apple-inc-2023-0085",
+        "apple-inc-2024-0086",
+        "apple-inc-2023-0038",
+        "apple-inc-2025-0046",
+        "apple-inc-2023-0043"
+      ],
+      "top_scores": [
+        0.5731,
+        0.5666,
+        0.5322,
+        0.513,
+        0.5073
+      ],
+      "query_ms": 396.5,
+      "reciprocal_rank": 0.0,
+      "recall@1": 0.0,
+      "hit@1": 0.0,
+      "recall@3": 0.0,
+      "hit@3": 0.0,
+      "recall@5": 0.0,
+      "hit@5": 0.0,
+      "recall@10": 0.0,
+      "hit@10": 0.0
+    },
+    {
+      "id": "q004",
+      "category": "single-hop",
+      "question": "What was Apple's effective tax rate in fiscal 2024?",
+      "relevant_chunk_ids": [
+        "apple-inc-2024-0050",
+        "apple-inc-2024-0067"
+      ],
+      "retrieved_chunk_ids": [
+        "apple-inc-2024-0062",
+        "apple-inc-2024-0050",
+        "apple-inc-2023-0050",
+        "apple-inc-2024-0048",
+        "apple-inc-2023-0065",
+        "apple-inc-2024-0049",
+        "apple-inc-2025-0040",
+        "apple-inc-2024-0075",
+        "apple-inc-2025-0048",
+        "apple-inc-2025-0065"
+      ],
+      "top_scores": [
+        0.6052,
+        0.5999,
+        0.5876,
+        0.5764,
+        0.5678
+      ],
+      "query_ms": 425.7,
+      "reciprocal_rank": 0.5,
+      "recall@1": 0.0,
+      "hit@1": 0.0,
+      "recall@3": 0.5,
+      "hit@3": 1.0,
+      "recall@5": 0.5,
+      "hit@5": 1.0,
+      "recall@10": 0.5,
+      "hit@10": 1.0
+    },
+    {
+      "id": "q005",
+      "category": "single-hop",
+      "question": "How much common stock was Apple authorized to repurchase under the program announced in May 2024?",
+      "relevant_chunk_ids": [
+        "apple-inc-2024-0047"
+      ],
+      "retrieved_chunk_ids": [
+        "apple-inc-2024-0047",
+        "apple-inc-2023-0070",
+        "apple-inc-2025-0047",
+        "apple-inc-2023-0044",
+        "apple-inc-2025-0048",
+        "apple-inc-2023-0050",
+        "apple-inc-2023-0046",
+        "apple-inc-2023-0045",
+        "apple-inc-2024-0086",
+        "apple-inc-2024-0071"
+      ],
+      "top_scores": [
+        0.8109,
+        0.7637,
+        0.7311,
+        0.6567,
+        0.6277
+      ],
+      "query_ms": 395.1,
+      "reciprocal_rank": 1.0,
+      "recall@1": 1.0,
+      "hit@1": 1.0,
+      "recall@3": 1.0,
+      "hit@3": 1.0,
+      "recall@5": 1.0,
+      "hit@5": 1.0,
+      "recall@10": 1.0,
+      "hit@10": 1.0
+    },
+    {
+      "id": "q006",
+      "category": "single-hop",
+      "question": "What were Apple's total net sales in fiscal 2023?",
+      "relevant_chunk_ids": [
+        "apple-inc-2023-0047",
+        "apple-inc-2023-0054",
+        "apple-inc-2023-0060"
+      ],
+      "retrieved_chunk_ids": [
+        "apple-inc-2024-0062",
+        "apple-inc-2023-0060",
+        "apple-inc-2024-0049",
+        "apple-inc-2025-0050",
+        "apple-inc-2024-0075",
+        "apple-inc-2024-0050",
+        "apple-inc-2024-0048",
+        "apple-inc-2023-0048",
+        "apple-inc-2025-0048",
+        "apple-inc-2025-0064"
+      ],
+      "top_scores": [
+        0.765,
+        0.7284,
+        0.6961,
+        0.6762,
+        0.6745
+      ],
+      "query_ms": 790.6,
+      "reciprocal_rank": 0.5,
+      "recall@1": 0.0,
+      "hit@1": 0.0,
+      "recall@3": 0.3333333333333333,
+      "hit@3": 1.0,
+      "recall@5": 0.3333333333333333,
+      "hit@5": 1.0,
+      "recall@10": 0.3333333333333333,
+      "hit@10": 1.0
+    },
+    {
+      "id": "q007",
+      "category": "single-hop",
+      "question": "What is the Epic Games lawsuit against Apple about?",
+      "relevant_chunk_ids": [
+        "apple-inc-2023-0043",
+        "apple-inc-2024-0045",
+        "apple-inc-2025-0045"
+      ],
+      "retrieved_chunk_ids": [
+        "apple-inc-2023-0043",
+        "apple-inc-2024-0046",
+        "apple-inc-2025-0046",
+        "apple-inc-2025-0010",
+        "apple-inc-2025-0031",
+        "apple-inc-2024-0045",
+        "apple-inc-2025-0029",
+        "apple-inc-2024-0031",
+        "apple-inc-2025-0034",
+        "apple-inc-2025-0045"
+      ],
+      "top_scores": [
+        0.8006,
+        0.6312,
+        0.5785,
+        0.5304,
+        0.5295
+      ],
+      "query_ms": 405.3,
+      "reciprocal_rank": 1.0,
+      "recall@1": 0.3333333333333333,
+      "hit@1": 1.0,
+      "recall@3": 0.3333333333333333,
+      "hit@3": 1.0,
+      "recall@5": 0.3333333333333333,
+      "hit@5": 1.0,
+      "recall@10": 1.0,
+      "hit@10": 1.0
+    },
+    {
+      "id": "q008",
+      "category": "single-hop",
+      "question": "What did the European Commission's 2016 State Aid Decision require Ireland to do regarding Apple?",
+      "relevant_chunk_ids": [
+        "apple-inc-2023-0066",
+        "apple-inc-2023-0067",
+        "apple-inc-2024-0066",
+        "apple-inc-2024-0067",
+        "apple-inc-2025-0069"
+      ],
+      "retrieved_chunk_ids": [
+        "apple-inc-2025-0069",
+        "apple-inc-2023-0067",
+        "apple-inc-2025-0034",
+        "apple-inc-2024-0026",
+        "apple-inc-2024-0067",
+        "apple-inc-2024-0045",
+        "apple-inc-2024-0086",
+        "apple-inc-2025-0046",
+        "apple-inc-2023-0043",
+        "apple-inc-2024-0040"
+      ],
+      "top_scores": [
+        0.5524,
+        0.5482,
+        0.4711,
+        0.4585,
+        0.4386
+      ],
+      "query_ms": 399.0,
+      "reciprocal_rank": 1.0,
+      "recall@1": 0.2,
+      "hit@1": 1.0,
+      "recall@3": 0.4,
+      "hit@3": 1.0,
+      "recall@5": 0.6,
+      "hit@5": 1.0,
+      "recall@10": 0.6,
+      "hit@10": 1.0
+    },
+    {
+      "id": "q009",
+      "category": "single-hop",
+      "question": "What does Apple use the proceeds of its commercial paper program for?",
+      "relevant_chunk_ids": [
+        "apple-inc-2023-0069",
+        "apple-inc-2024-0070",
+        "apple-inc-2025-0072"
+      ],
+      "retrieved_chunk_ids": [
+        "apple-inc-2024-0070",
+        "apple-inc-2024-0086",
+        "apple-inc-2025-0010",
+        "apple-inc-2024-0012",
+        "apple-inc-2025-0012",
+        "apple-inc-2025-0064",
+        "apple-inc-2023-0058",
+        "apple-inc-2023-0069",
+        "apple-inc-2023-0012",
+        "apple-inc-2025-0008"
+      ],
+      "top_scores": [
+        0.6746,
+        0.53,
+        0.5195,
+        0.5119,
+        0.5096
+      ],
+      "query_ms": 395.9,
+      "reciprocal_rank": 1.0,
+      "recall@1": 0.3333333333333333,
+      "hit@1": 1.0,
+      "recall@3": 0.3333333333333333,
+      "hit@3": 1.0,
+      "recall@5": 0.3333333333333333,
+      "hit@5": 1.0,
+      "recall@10": 0.6666666666666666,
+      "hit@10": 1.0
+    },
+    {
+      "id": "q010",
+      "category": "single-hop",
+      "question": "What was Apple's quarterly cash dividend per share as of the end of fiscal 2024?",
+      "relevant_chunk_ids": [
+        "apple-inc-2024-0051",
+        "apple-inc-2024-0052"
+      ],
+      "retrieved_chunk_ids": [
+        "apple-inc-2025-0048",
+        "apple-inc-2023-0070",
+        "apple-inc-2025-0065",
+        "apple-inc-2025-0053",
+        "apple-inc-2024-0075",
+        "apple-inc-2024-0048",
+        "apple-inc-2023-0074",
+        "apple-inc-2024-0070",
+        "apple-inc-2025-0047",
+        "apple-inc-2023-0045"
+      ],
+      "top_scores": [
+        0.5856,
+        0.5713,
+        0.5707,
+        0.569,
+        0.5639
+      ],
+      "query_ms": 396.8,
+      "reciprocal_rank": 0.0,
+      "recall@1": 0.0,
+      "hit@1": 0.0,
+      "recall@3": 0.0,
+      "hit@3": 0.0,
+      "recall@5": 0.0,
+      "hit@5": 0.0,
+      "recall@10": 0.0,
+      "hit@10": 0.0
+    },
+    {
+      "id": "q011",
+      "category": "single-hop",
+      "question": "On what exchange is Apple's common stock traded and under what ticker symbol?",
+      "relevant_chunk_ids": [
+        "apple-inc-2023-0044",
+        "apple-inc-2024-0046",
+        "apple-inc-2025-0047"
+      ],
+      "retrieved_chunk_ids": [
+        "apple-inc-2025-0047",
+        "apple-inc-2023-0045",
+        "apple-inc-2023-0044",
+        "apple-inc-2023-0070",
+        "apple-inc-2025-0065",
+        "apple-inc-2024-0075",
+        "apple-inc-2025-0048",
+        "apple-inc-2023-0074",
+        "apple-inc-2024-0060",
+        "apple-inc-2023-0058"
+      ],
+      "top_scores": [
+        0.5773,
+        0.5316,
+        0.5239,
+        0.4894,
+        0.4701
+      ],
+      "query_ms": 398.5,
+      "reciprocal_rank": 1.0,
+      "recall@1": 0.3333333333333333,
+      "hit@1": 1.0,
+      "recall@3": 0.6666666666666666,
+      "hit@3": 1.0,
+      "recall@5": 0.6666666666666666,
+      "hit@5": 1.0,
+      "recall@10": 0.6666666666666666,
+      "hit@10": 1.0
+    },
+    {
+      "id": "q012",
+      "category": "single-hop",
+      "question": "What performance obligations does Apple identify when it sells devices like iPhone, Mac, and iPad?",
+      "relevant_chunk_ids": [
+        "apple-inc-2023-0059"
+      ],
+      "retrieved_chunk_ids": [
+        "apple-inc-2023-0059",
+        "apple-inc-2025-0063",
+        "apple-inc-2024-0061",
+        "apple-inc-2025-0064",
+        "apple-inc-2025-0034",
+        "apple-inc-2025-0010",
+        "apple-inc-2025-0025",
+        "apple-inc-2025-0008",
+        "apple-inc-2024-0025",
+        "apple-inc-2024-0008"
+      ],
+      "top_scores": [
+        0.7082,
+        0.6998,
+        0.6508,
+        0.637,
+        0.609
+      ],
+      "query_ms": 402.2,
+      "reciprocal_rank": 1.0,
+      "recall@1": 1.0,
+      "hit@1": 1.0,
+      "recall@3": 1.0,
+      "hit@3": 1.0,
+      "recall@5": 1.0,
+      "hit@5": 1.0,
+      "recall@10": 1.0,
+      "hit@10": 1.0
+    },
+    {
+      "id": "q013",
+      "category": "aggregation",
+      "question": "What are all the product and service categories Apple breaks its net sales into?",
+      "relevant_chunk_ids": [
+        "apple-inc-2023-0060",
+        "apple-inc-2024-0062",
+        "apple-inc-2025-0064"
+      ],
+      "retrieved_chunk_ids": [
+        "apple-inc-2025-0064",
+        "apple-inc-2024-0012",
+        "apple-inc-2023-0012",
+        "apple-inc-2023-0060",
+        "apple-inc-2024-0062",
+        "apple-inc-2024-0049",
+        "apple-inc-2025-0050",
+        "apple-inc-2023-0048",
+        "apple-inc-2025-0010",
+        "apple-inc-2024-0025"
+      ],
+      "top_scores": [
+        0.6804,
+        0.6683,
+        0.6409,
+        0.6246,
+        0.6061
+      ],
+      "query_ms": 406.6,
+      "reciprocal_rank": 1.0,
+      "recall@1": 0.3333333333333333,
+      "hit@1": 1.0,
+      "recall@3": 0.3333333333333333,
+      "hit@3": 1.0,
+      "recall@5": 1.0,
+      "hit@5": 1.0,
+      "recall@10": 1.0,
+      "hit@10": 1.0
+    },
+    {
+      "id": "q014",
+      "category": "aggregation",
+      "question": "Which subscription and payment services does Apple describe in the Business section of its 10-K?",
+      "relevant_chunk_ids": [
+        "apple-inc-2023-0008",
+        "apple-inc-2023-0009",
+        "apple-inc-2024-0009",
+        "apple-inc-2025-0009"
+      ],
+      "retrieved_chunk_ids": [
+        "apple-inc-2023-0009",
+        "apple-inc-2024-0009",
+        "apple-inc-2025-0009",
+        "apple-inc-2025-0064",
+        "apple-inc-2024-0061",
+        "apple-inc-2023-0046",
+        "apple-inc-2025-0010",
+        "apple-inc-2024-0012",
+        "apple-inc-2023-0058",
+        "apple-inc-2024-0026"
+      ],
+      "top_scores": [
+        0.672,
+        0.6564,
+        0.651,
+        0.5624,
+        0.5553
+      ],
+      "query_ms": 398.9,
+      "reciprocal_rank": 1.0,
+      "recall@1": 0.25,
+      "hit@1": 1.0,
+      "recall@3": 0.75,
+      "hit@3": 1.0,
+      "recall@5": 0.75,
+      "hit@5": 1.0,
+      "recall@10": 0.75,
+      "hit@10": 1.0
+    },
+    {
+      "id": "q015",
+      "category": "aggregation",
+      "question": "What employee stock plans does Apple maintain for share-based compensation?",
+      "relevant_chunk_ids": [
+        "apple-inc-2023-0070",
+        "apple-inc-2023-0084",
+        "apple-inc-2024-0071",
+        "apple-inc-2025-0073"
+      ],
+      "retrieved_chunk_ids": [
+        "apple-inc-2024-0086",
+        "apple-inc-2025-0047",
+        "apple-inc-2025-0088",
+        "apple-inc-2025-0013",
+        "apple-inc-2023-0070",
+        "apple-inc-2023-0044",
+        "apple-inc-2025-0062",
+        "apple-inc-2023-0050",
+        "apple-inc-2023-0045",
+        "apple-inc-2024-0087"
+      ],
+      "top_scores": [
+        0.5975,
+        0.5906,
+        0.5865,
+        0.5809,
+        0.5538
+      ],
+      "query_ms": 401.4,
+      "reciprocal_rank": 0.2,
+      "recall@1": 0.0,
+      "hit@1": 0.0,
+      "recall@3": 0.0,
+      "hit@3": 0.0,
+      "recall@5": 0.25,
+      "hit@5": 1.0,
+      "recall@10": 0.25,
+      "hit@10": 1.0
+    },
+    {
+      "id": "q016",
+      "category": "multi-hop",
+      "question": "How did Apple's authorized share repurchase amount change between its 2023 and 2024 program announcements?",
+      "relevant_chunk_ids": [
+        "apple-inc-2023-0044",
+        "apple-inc-2024-0047"
+      ],
+      "retrieved_chunk_ids": [
+        "apple-inc-2024-0047",
+        "apple-inc-2023-0070",
+        "apple-inc-2025-0047",
+        "apple-inc-2023-0046",
+        "apple-inc-2023-0044",
+        "apple-inc-2023-0050",
+        "apple-inc-2024-0086",
+        "apple-inc-2024-0071",
+        "apple-inc-2025-0053",
+        "apple-inc-2025-0048"
+      ],
+      "top_scores": [
+        0.7521,
+        0.7136,
+        0.6668,
+        0.6334,
+        0.6155
+      ],
+      "query_ms": 394.6,
+      "reciprocal_rank": 1.0,
+      "recall@1": 0.5,
+      "hit@1": 1.0,
+      "recall@3": 0.5,
+      "hit@3": 1.0,
+      "recall@5": 1.0,
+      "hit@5": 1.0,
+      "recall@10": 1.0,
+      "hit@10": 1.0
+    },
+    {
+      "id": "q017",
+      "category": "multi-hop",
+      "question": "Why did Apple's effective tax rate rise sharply from fiscal 2023 to fiscal 2024?",
+      "relevant_chunk_ids": [
+        "apple-inc-2024-0050",
+        "apple-inc-2024-0067",
+        "apple-inc-2024-0070"
+      ],
+      "retrieved_chunk_ids": [
+        "apple-inc-2024-0050",
+        "apple-inc-2024-0048",
+        "apple-inc-2024-0062",
+        "apple-inc-2023-0050",
+        "apple-inc-2025-0065",
+        "apple-inc-2024-0049",
+        "apple-inc-2025-0048",
+        "apple-inc-2023-0065",
+        "apple-inc-2025-0050",
+        "apple-inc-2023-0046"
+      ],
+      "top_scores": [
+        0.5877,
+        0.5628,
+        0.5437,
+        0.5428,
+        0.5184
+      ],
+      "query_ms": 395.5,
+      "reciprocal_rank": 1.0,
+      "recall@1": 0.3333333333333333,
+      "hit@1": 1.0,
+      "recall@3": 0.3333333333333333,
+      "hit@3": 1.0,
+      "recall@5": 0.3333333333333333,
+      "hit@5": 1.0,
+      "recall@10": 0.3333333333333333,
+      "hit@10": 1.0
+    },
+    {
+      "id": "q018",
+      "category": "multi-hop",
+      "question": "What manufacturing and component-supply risks does Apple face from relying on single-source and outsourcing partners?",
+      "relevant_chunk_ids": [
+        "apple-inc-2023-0019",
+        "apple-inc-2023-0020",
+        "apple-inc-2023-0021"
+      ],
+      "retrieved_chunk_ids": [
+        "apple-inc-2023-0020",
+        "apple-inc-2024-0021",
+        "apple-inc-2025-0021",
+        "apple-inc-2023-0036",
+        "apple-inc-2024-0025",
+        "apple-inc-2025-0025",
+        "apple-inc-2023-0038",
+        "apple-inc-2025-0022",
+        "apple-inc-2025-0011",
+        "apple-inc-2025-0010"
+      ],
+      "top_scores": [
+        0.7777,
+        0.6214,
+        0.6174,
+        0.6032,
+        0.584
+      ],
+      "query_ms": 400.2,
+      "reciprocal_rank": 1.0,
+      "recall@1": 0.3333333333333333,
+      "hit@1": 1.0,
+      "recall@3": 0.3333333333333333,
+      "hit@3": 1.0,
+      "recall@5": 0.3333333333333333,
+      "hit@5": 1.0,
+      "recall@10": 0.3333333333333333,
+      "hit@10": 1.0
+    },
+    {
+      "id": "q019",
+      "category": "multi-hop",
+      "question": "What legal and regulatory matters relate specifically to Apple's App Store?",
+      "relevant_chunk_ids": [
+        "apple-inc-2023-0025",
+        "apple-inc-2023-0034",
+        "apple-inc-2023-0043"
+      ],
+      "retrieved_chunk_ids": [
+        "apple-inc-2024-0046",
+        "apple-inc-2025-0046",
+        "apple-inc-2025-0034",
+        "apple-inc-2024-0026",
+        "apple-inc-2023-0043",
+        "apple-inc-2023-0025",
+        "apple-inc-2024-0045",
+        "apple-inc-2024-0031",
+        "apple-inc-2023-0034",
+        "apple-inc-2025-0036"
+      ],
+      "top_scores": [
+        0.7296,
+        0.7172,
+        0.6978,
+        0.6913,
+        0.6878
+      ],
+      "query_ms": 395.1,
+      "reciprocal_rank": 0.2,
+      "recall@1": 0.0,
+      "hit@1": 0.0,
+      "recall@3": 0.0,
+      "hit@3": 0.0,
+      "recall@5": 0.3333333333333333,
+      "hit@5": 1.0,
+      "recall@10": 1.0,
+      "hit@10": 1.0
+    },
+    {
+      "id": "q020",
+      "category": "multi-hop",
+      "question": "How did Apple's net sales trends differ between the Americas and Greater China in fiscal 2023?",
+      "relevant_chunk_ids": [
+        "apple-inc-2023-0047",
+        "apple-inc-2023-0073"
+      ],
+      "retrieved_chunk_ids": [
+        "apple-inc-2023-0047",
+        "apple-inc-2025-0050",
+        "apple-inc-2024-0049",
+        "apple-inc-2024-0075",
+        "apple-inc-2024-0062",
+        "apple-inc-2023-0048",
+        "apple-inc-2024-0038",
+        "apple-inc-2023-0060",
+        "apple-inc-2024-0050",
+        "apple-inc-2023-0074"
+      ],
+      "top_scores": [
+        0.7308,
+        0.7011,
+        0.6668,
+        0.6388,
+        0.6268
+      ],
+      "query_ms": 395.6,
+      "reciprocal_rank": 1.0,
+      "recall@1": 0.5,
+      "hit@1": 1.0,
+      "recall@3": 0.5,
+      "hit@3": 1.0,
+      "recall@5": 0.5,
+      "hit@5": 1.0,
+      "recall@10": 0.5,
+      "hit@10": 1.0
+    },
+    {
+      "id": "q021",
+      "category": "multi-hop",
+      "question": "What is the status of the EU Digital Markets Act noncompliance investigations against Apple?",
+      "relevant_chunk_ids": [
+        "apple-inc-2024-0045",
+        "apple-inc-2025-0045"
+      ],
+      "retrieved_chunk_ids": [
+        "apple-inc-2024-0045",
+        "apple-inc-2025-0045",
+        "apple-inc-2024-0035",
+        "apple-inc-2025-0034",
+        "apple-inc-2024-0026",
+        "apple-inc-2025-0036",
+        "apple-inc-2023-0038",
+        "apple-inc-2023-0025",
+        "apple-inc-2025-0031",
+        "apple-inc-2025-0029"
+      ],
+      "top_scores": [
+        0.6122,
+        0.5893,
+        0.5698,
+        0.5647,
+        0.5612
+      ],
+      "query_ms": 395.2,
+      "reciprocal_rank": 1.0,
+      "recall@1": 0.5,
+      "hit@1": 1.0,
+      "recall@3": 1.0,
+      "hit@3": 1.0,
+      "recall@5": 1.0,
+      "hit@5": 1.0,
+      "recall@10": 1.0,
+      "hit@10": 1.0
+    },
+    {
+      "id": "q022",
+      "category": "out-of-scope",
+      "question": "How many iPhone units did Apple sell in fiscal 2024?",
+      "relevant_chunk_ids": [],
+      "retrieved_chunk_ids": [
+        "apple-inc-2024-0049",
+        "apple-inc-2024-0062",
+        "apple-inc-2025-0048",
+        "apple-inc-2023-0060",
+        "apple-inc-2024-0048",
+        "apple-inc-2025-0050",
+        "apple-inc-2024-0075",
+        "apple-inc-2023-0046",
+        "apple-inc-2025-0064",
+        "apple-inc-2024-0047"
+      ],
+      "top_scores": [
+        0.6525,
+        0.6511,
+        0.63,
+        0.6181,
+        0.6001
+      ],
+      "query_ms": 396.3
+    },
+    {
+      "id": "q023",
+      "category": "out-of-scope",
+      "question": "What is Apple's revenue guidance for fiscal 2026?",
+      "relevant_chunk_ids": [],
+      "retrieved_chunk_ids": [
+        "apple-inc-2024-0048",
+        "apple-inc-2024-0050",
+        "apple-inc-2024-0062",
+        "apple-inc-2025-0048",
+        "apple-inc-2023-0060",
+        "apple-inc-2023-0046",
+        "apple-inc-2024-0086",
+        "apple-inc-2023-0050",
+        "apple-inc-2024-0049",
+        "apple-inc-2024-0075"
+      ],
+      "top_scores": [
+        0.685,
+        0.6821,
+        0.6789,
+        0.6248,
+        0.6021
+      ],
+      "query_ms": 403.4
+    },
+    {
+      "id": "q024",
+      "category": "out-of-scope",
+      "question": "How many physical retail stores does Microsoft operate?",
+      "relevant_chunk_ids": [],
+      "retrieved_chunk_ids": [
+        "apple-inc-2025-0064",
+        "apple-inc-2023-0012",
+        "apple-inc-2024-0012",
+        "apple-inc-2023-0009",
+        "apple-inc-2023-0073",
+        "apple-inc-2024-0074",
+        "apple-inc-2025-0009",
+        "apple-inc-2025-0063",
+        "apple-inc-2024-0031",
+        "apple-inc-2024-0009"
+      ],
+      "top_scores": [
+        0.424,
+        0.4174,
+        0.4041,
+        0.3948,
+        0.3921
+      ],
+      "query_ms": 405.6
+    },
+    {
+      "id": "q025",
+      "category": "multi-hop",
+      "question": "How does the set of competitors Apple names in its fiscal 2023 filing compare with fiscal 2024?",
+      "relevant_chunk_ids": [
+        "apple-inc-2023-0024",
+        "apple-inc-2024-0025"
+      ],
+      "retrieved_chunk_ids": [
+        "apple-inc-2025-0048",
+        "apple-inc-2024-0048",
+        "apple-inc-2025-0010",
+        "apple-inc-2024-0049",
+        "apple-inc-2023-0046",
+        "apple-inc-2024-0075",
+        "apple-inc-2024-0062",
+        "apple-inc-2025-0065",
+        "apple-inc-2024-0050",
+        "apple-inc-2023-0048"
+      ],
+      "top_scores": [
+        0.6284,
+        0.613,
+        0.5852,
+        0.5563,
+        0.5536
+      ],
+      "query_ms": 417.1,
+      "reciprocal_rank": 0.0,
+      "recall@1": 0.0,
+      "hit@1": 0.0,
+      "recall@3": 0.0,
+      "hit@3": 0.0,
+      "recall@5": 0.0,
+      "hit@5": 0.0,
+      "recall@10": 0.0,
+      "hit@10": 0.0
+    },
+    {
+      "id": "q026",
+      "category": "aggregation",
+      "question": "Which laws, regulations, and government bodies does Apple state it is subject to?",
+      "relevant_chunk_ids": [
+        "apple-inc-2023-0033",
+        "apple-inc-2023-0034",
+        "apple-inc-2023-0050",
+        "apple-inc-2025-0040"
+      ],
+      "retrieved_chunk_ids": [
+        "apple-inc-2024-0033",
+        "apple-inc-2025-0036",
+        "apple-inc-2025-0034",
+        "apple-inc-2024-0031",
+        "apple-inc-2025-0012",
+        "apple-inc-2024-0046",
+        "apple-inc-2025-0046",
+        "apple-inc-2024-0026",
+        "apple-inc-2024-0040",
+        "apple-inc-2023-0076"
+      ],
+      "top_scores": [
+        0.6251,
+        0.6225,
+        0.587,
+        0.5619,
+        0.5489
+      ],
+      "query_ms": 404.9,
+      "reciprocal_rank": 0.0,
+      "recall@1": 0.0,
+      "hit@1": 0.0,
+      "recall@3": 0.0,
+      "hit@3": 0.0,
+      "recall@5": 0.0,
+      "hit@5": 0.0,
+      "recall@10": 0.0,
+      "hit@10": 0.0
+    },
+    {
+      "id": "q027",
+      "category": "multi-hop",
+      "question": "What antitrust litigation has been brought against Apple over the App Store, and by whom?",
+      "relevant_chunk_ids": [
+        "apple-inc-2023-0034",
+        "apple-inc-2023-0043",
+        "apple-inc-2024-0045"
+      ],
+      "retrieved_chunk_ids": [
+        "apple-inc-2023-0043",
+        "apple-inc-2024-0046",
+        "apple-inc-2025-0046",
+        "apple-inc-2024-0045",
+        "apple-inc-2025-0034",
+        "apple-inc-2025-0045",
+        "apple-inc-2024-0026",
+        "apple-inc-2025-0010",
+        "apple-inc-2025-0064",
+        "apple-inc-2023-0025"
+      ],
+      "top_scores": [
+        0.7635,
+        0.7462,
+        0.7306,
+        0.6546,
+        0.6144
+      ],
+      "query_ms": 423.8,
+      "reciprocal_rank": 1.0,
+      "recall@1": 0.3333333333333333,
+      "hit@1": 1.0,
+      "recall@3": 0.3333333333333333,
+      "hit@3": 1.0,
+      "recall@5": 0.6666666666666666,
+      "hit@5": 1.0,
+      "recall@10": 0.6666666666666666,
+      "hit@10": 1.0
+    }
+  ],
+  "config": {
+    "timestamp_utc": "2026-08-28T12:23:53.401048+00:00",
+    "git_rev": "26478e2ffbf618111db367cddd806b4827e3e7c8",
+    "embedding_model": "all-MiniLM-L6-v2",
+    "embedding_dim": 384,
+    "hnsw_ef_search": 64,
+    "vector_index_type": "hnsw",
+    "k_values": [
+      1,
+      3,
+      5,
+      10
+    ],
+    "query_set": "data\\eval\\retrieval_queries.jsonl",
+    "query_set_sha1": "079ea803ec242bd89a4b37dadbbd811f78e21406",
+    "n_queries": 27
+  }
+}

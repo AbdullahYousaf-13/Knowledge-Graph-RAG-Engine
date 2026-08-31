@@ -51,7 +51,7 @@ Free courses mapped to Project 1's concepts, in the order to take them. Check it
   ```
   https://graphacademy.neo4j.com/certifications/genai-certification/
   Covers: routing, entity linking, Text2Cypher, hybrid search — this is Phase 3 (routing) territory;
-  Phase 3 itself is now built (87.5% measured routing accuracy), so this course would be reinforcement
+  Phase 3 itself is now built (96.3% measured routing accuracy), so this course would be reinforcement
   rather than prep at this point.
   The ~18 hrs is the full recommended 10-course prep path; you can take just the specific
   courses you need (e.g. "Neo4j & GenerativeAI Fundamentals") without doing all 10 before

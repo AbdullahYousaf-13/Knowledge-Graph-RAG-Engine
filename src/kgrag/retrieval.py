@@ -20,8 +20,10 @@ from .db import VECTOR_TABLE, connect
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
 EMBEDDING_DIM = int(os.getenv("EMBEDDING_DIM", "384"))
 
-# HNSW is approximate; ef_search trades recall for latency at query time. Pin it so
-# results are reproducible and the eval measures a known operating point.
+# HNSW is approximate; ef_search trades recall for latency at query time. Set to a
+# known operating point so the eval is reproducible. Swept over {32..400} + an exact
+# ceiling (scripts/eval_retrieval.py --ef-sweep): recall is flat at this corpus size
+# (225 vectors, no approximation loss), so 64 is as good as any.
 HNSW_EF_SEARCH = int(os.getenv("HNSW_EF_SEARCH", "64"))
 
 

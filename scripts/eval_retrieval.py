@@ -19,6 +19,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -99,7 +100,9 @@ def evaluate(queries: list[dict], ks: list[int], conn) -> dict:
     per_query = []
 
     for q in queries:
+        t0 = time.perf_counter()
         hits = retrieval.vector_search(q["question"], k=max_k, conn=conn, model=model)
+        query_ms = (time.perf_counter() - t0) * 1000.0
         retrieved_ids = [h.chunk_id for h in hits]
         rel = set(q.get("relevant_chunk_ids", []))
 
@@ -110,6 +113,7 @@ def evaluate(queries: list[dict], ks: list[int], conn) -> dict:
             "relevant_chunk_ids": sorted(rel),
             "retrieved_chunk_ids": retrieved_ids,
             "top_scores": [round(h.score, 4) for h in hits[:5]],
+            "query_ms": round(query_ms, 1),
         }
 
         if q["category"] != "out-of-scope" and rel:
@@ -124,8 +128,12 @@ def evaluate(queries: list[dict], ks: list[int], conn) -> dict:
         per_query.append(rec)
 
     # Aggregate over scored categories.
+    all_ms = [r["query_ms"] for r in per_query if "query_ms" in r]
     scored = [r for r in per_query if r["category"] in SCORED_CATEGORIES]
     agg: dict = {"n_scored": len(scored), "by_category": {}}
+    if all_ms:
+        agg["mean_query_ms"] = round(sum(all_ms) / len(all_ms), 1)
+        agg["p90_query_ms"] = round(sorted(all_ms)[int(len(all_ms) * 0.9)], 1)
     if scored:
         agg["MRR"] = round(sum(r["reciprocal_rank"] for r in scored) / len(scored), 4)
         for k in ks:
@@ -195,11 +203,48 @@ def print_report(result: dict, ks: list[int]) -> None:
         print(f"  {r['id']:<6} {mark}  RR={r['reciprocal_rank']:.2f}  gold={r['relevant_chunk_ids']}  got={r['retrieved_chunk_ids'][:5]}")
 
 
+def run_sweep(queries: list[dict], ks: list[int], ef_values: list[int], conn) -> dict:
+    """Run the eval once per ef_search value. 'Tune ef_search' (spec) = pick the knee
+    of the recall/latency curve, not just accept pgvector's default. Also runs a
+    brute-force exact scan (ef_search set very high) as the true recall ceiling the
+    ANN index is being measured against."""
+    rows = []
+    ceiling_ef = 1000
+    for ef in [*ef_values, ceiling_ef]:
+        retrieval.HNSW_EF_SEARCH = ef
+        res = evaluate(queries, ks, conn)
+        agg = res["aggregate"]
+        rows.append({
+            "ef_search": ef,
+            "is_ceiling": ef == ceiling_ef,
+            "MRR": agg.get("MRR"),
+            **{f"recall@{k}": agg.get(f"recall@{k}") for k in ks},
+            **{f"hit@{k}": agg.get(f"hit@{k}") for k in ks},
+            "mean_query_ms": agg.get("mean_query_ms"),
+            "p90_query_ms": agg.get("p90_query_ms"),
+        })
+
+    hdr = f"{'ef_search':>10}  {'MRR':>6}  " + "  ".join(f"R@{k}".rjust(6) for k in ks) + f"  {'ms':>7}"
+    print("\n=== ef_search sweep ===")
+    print(hdr)
+    print("-" * len(hdr))
+    for r in rows:
+        label = f"{r['ef_search']}{'*' if r['is_ceiling'] else ''}"
+        line = f"{label:>10}  {r['MRR']:.3f}  " + "  ".join(f"{r[f'recall@{k}']:.3f}".rjust(6) for k in ks)
+        line += f"  {r['mean_query_ms']:7.1f}"
+        print(line)
+    print("* = brute-force exact recall ceiling (ef_search=1000), not a tuning candidate")
+    return {"sweep": rows, "ef_values": ef_values, "k_values": ks}
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--validate", action="store_true", help="Only check the query set.")
     parser.add_argument("--k", default="1,3,5,10", help="Comma-separated k values.")
     parser.add_argument("--ef-search", type=int, default=None, help="Override HNSW ef_search.")
+    parser.add_argument("--ef-sweep", default=None,
+                        help="Comma-separated ef_search values to sweep, e.g. '32,64,100,200,400'. "
+                             "Runs the eval once per value + an exact-recall ceiling; writes ef_sweep_<UTC>.json.")
     parser.add_argument("--out", default=None, help="Results JSON path (default: data/eval/results/retrieval_<UTC>.json).")
     args = parser.parse_args()
 
@@ -213,6 +258,23 @@ def main() -> None:
         if not validate(queries, conn):
             sys.exit(1)
         if args.validate:
+            return
+
+        if args.ef_sweep:
+            ef_values = sorted(int(x) for x in args.ef_sweep.split(","))
+            sweep = run_sweep(queries, ks, ef_values, conn)
+            sweep["config"] = {
+                "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+                "git_rev": git_rev(),
+                "embedding_model": retrieval.EMBEDDING_MODEL,
+                "vector_index_type": index_type(conn),
+                "query_set_sha1": file_sha1(QUERY_PATH),
+                "n_queries": len(queries),
+            }
+            out_path = Path(args.out) if args.out else RESULTS_DIR / f"ef_sweep_{datetime.now(timezone.utc):%Y%m%dT%H%M%SZ}.json"
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            out_path.write_text(json.dumps(sweep, indent=2), encoding="utf-8")
+            print(f"\nwrote {out_path.relative_to(BASE_DIR)}")
             return
 
         result = evaluate(queries, ks, conn)

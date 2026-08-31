@@ -27,6 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 LOG_PATH = BASE_DIR / "data" / "logs" / "routing_log.jsonl"
 
 RoutePath = Literal["vector", "graph", "both", "out_of_scope"]
+QueryType = Literal["connection", "multi_hop", "comparison", "aggregation", "none"]
 
 
 class RouteDecision(BaseModel):
@@ -46,11 +47,109 @@ class RouteDecision(BaseModel):
         default_factory=list,
         description="Entity names mentioned in the question, for graph lookup. Empty if path is vector or out_of_scope.",
     )
+    query_type: QueryType = Field(
+        default="none",
+        description=(
+            "The kind of graph question, which selects the Cypher template. "
+            "connection: how two named entities are directly related (e.g. 'Is Apple a customer of Broadcom?'). "
+            "multi_hop: an indirect link through intermediate entities (e.g. 'Which country is Apple's main chip supplier based in?'). "
+            "comparison: the same kind of relationship for two or more entities, to be contrasted "
+            "(e.g. 'How do Apple's App Store regulations differ between the EU and the US?'). "
+            "aggregation: counting or summarising an entity's relationships (e.g. 'Which regulations is Apple subject to?'). "
+            "none: path is vector or out_of_scope, or no entity relationship is involved."
+        ),
+    )
     confidence: float = Field(
         ge=0.0, le=1.0,
         description="How confident this routing decision is, 0-1. Low confidence for ambiguous or borderline questions.",
     )
     reasoning: str = Field(description="One sentence on why this path was chosen.")
+
+
+# Worked examples. Hand-written and deliberately disjoint from
+# data/eval/retrieval_queries.jsonl so the routing-accuracy eval stays an honest
+# held-out measurement. They cover one case per path plus the boundaries the
+# confusion matrix actually misses (both<->graph, vector<->both).
+ROUTER_FEW_SHOT: list[dict] = [
+    {
+        "question": "What discount rate does Apple use to measure its lease liabilities?",
+        "decision": {
+            "path": "vector", "entities": [], "query_type": "none", "confidence": 0.95,
+            "reasoning": "A single accounting figure stated in the filing text; no entity relationship involved.",
+        },
+    },
+    {
+        "question": "Is Broadcom a supplier to Apple according to the filings?",
+        "decision": {
+            "path": "graph", "entities": ["Broadcom", "Apple"], "query_type": "connection", "confidence": 0.9,
+            "reasoning": "Asks only whether a direct relationship exists between two named entities.",
+        },
+    },
+    {
+        "question": "Which country is the manufacturer of Apple's processors based in?",
+        "decision": {
+            "path": "graph", "entities": ["Apple"], "query_type": "multi_hop", "confidence": 0.75,
+            "reasoning": "Needs a chain: Apple -> chip supplier -> that supplier's location.",
+        },
+    },
+    {
+        "question": "Which regulators and laws does Apple say apply to it in the European Union versus the United States?",
+        "decision": {
+            "path": "both", "entities": ["European Union", "United States"], "query_type": "comparison", "confidence": 0.7,
+            "reasoning": "Contrasts which regulatory entities are linked to Apple in each jurisdiction - a relationship question - plus narrative detail.",
+        },
+    },
+    {
+        "question": "How did Apple's research and development expense in fiscal 2024 compare with fiscal 2023?",
+        "decision": {
+            "path": "vector", "entities": [], "query_type": "none", "confidence": 0.9,
+            "reasoning": "A year-over-year comparison of one reported figure is still a lookup in the financial statements, not a graph question.",
+        },
+    },
+    {
+        "question": "How does Apple's net sales in one geographic segment compare with another for the same year?",
+        "decision": {
+            "path": "vector", "entities": [], "query_type": "none", "confidence": 0.85,
+            "reasoning": "Segment net-sales figures are line items in the segment table; comparing them is a text/table lookup, not a relationship traversal.",
+        },
+    },
+    {
+        "question": "What did a past European tax ruling require regarding Apple, and what amount was involved?",
+        "decision": {
+            "path": "vector", "entities": [], "query_type": "none", "confidence": 0.85,
+            "reasoning": "A specific disclosed fact from the legal-proceedings text; answerable from the passage without traversing entity links.",
+        },
+    },
+    {
+        "question": "Which laws and regulations is Apple subject to across its filings?",
+        "decision": {
+            "path": "graph", "entities": ["Apple"], "query_type": "aggregation", "confidence": 0.85,
+            "reasoning": "The answer is a tally of one entity's SUBJECT_TO relationships, not a single passage.",
+        },
+    },
+    {
+        "question": "What is Apple's dispute with Qualcomm about and how has it affected the business?",
+        "decision": {
+            "path": "both", "entities": ["Apple", "Qualcomm"], "query_type": "connection", "confidence": 0.8,
+            "reasoning": "Needs the graph link between the two companies and the surrounding narrative on business impact.",
+        },
+    },
+    {
+        "question": "What is Apple's projected iPhone revenue for fiscal 2027?",
+        "decision": {
+            "path": "out_of_scope", "entities": [], "query_type": "none", "confidence": 0.95,
+            "reasoning": "Forward-looking guidance Apple does not disclose in a 10-K.",
+        },
+    },
+]
+
+
+def _format_few_shot() -> str:
+    lines = ["Examples:"]
+    for ex in ROUTER_FEW_SHOT:
+        lines.append(f"Question: {ex['question']}")
+        lines.append(json.dumps(ex["decision"], ensure_ascii=False))
+    return "\n".join(lines)
 
 
 ROUTER_PROMPT = """
@@ -77,6 +176,8 @@ whether the named entities actually exist as tracked entities. A caller may choo
 run more than one retrieval path when confidence is low, so an honest low score is \
 more useful than a falsely confident one.
 
+{few_shot}
+
 Question: {question}
 """.strip()
 
@@ -85,7 +186,7 @@ def route_question(question: str, *, client: genai.Client | None = None) -> Rout
     client = client or genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
     response = client.models.generate_content(
         model=MODEL_NAME,
-        contents=ROUTER_PROMPT.format(question=question),
+        contents=ROUTER_PROMPT.format(few_shot=_format_few_shot(), question=question),
         config={
             "response_mime_type": "application/json",
             "response_schema": RouteDecision,
@@ -113,6 +214,7 @@ def log_route_decision(question: str, decision: RouteDecision, effective_path: s
         "confidence": decision.confidence,
         "fallback_triggered": fallback_triggered,
         "entities": decision.entities,
+        "query_type": decision.query_type,
         "reasoning": decision.reasoning,
     }
     with LOG_PATH.open("a", encoding="utf-8") as f:
@@ -138,19 +240,26 @@ def execute_route(decision: RouteDecision, question: str, *, k: int = 5, hops: i
         "confidence": decision.confidence,
         "fallback_triggered": fallback_triggered,
         "entities": decision.entities,
+        "query_type": decision.query_type,
         "reasoning": decision.reasoning,
+        "vector_hits": [],
+        "graph_facts": [],
+        "graph_aggregates": [],
     }
 
-    if effective_path == "out_of_scope":
-        result["vector_hits"] = []
-        result["graph_facts"] = []
-    else:
-        result["vector_hits"] = retrieval.vector_search(question, k=k) if effective_path in ("vector", "both") else []
-        result["graph_facts"] = (
-            graph_retrieval.graph_search(decision.entities, hops=hops)
-            if effective_path in ("graph", "both") and decision.entities
-            else []
-        )
+    if effective_path != "out_of_scope":
+        if effective_path in ("vector", "both"):
+            result["vector_hits"] = retrieval.vector_search(question, k=k)
+
+        if effective_path in ("graph", "both") and decision.entities:
+            if decision.query_type == "aggregation":
+                result["graph_aggregates"] = graph_retrieval.graph_aggregate(
+                    decision.entities, hops=hops
+                )
+            else:
+                result["graph_facts"] = graph_retrieval.graph_search(
+                    decision.entities, query_type=decision.query_type, hops=hops
+                )
 
     log_route_decision(question, decision, effective_path, fallback_triggered)
     return result
@@ -164,7 +273,7 @@ def _main() -> None:
     args = parser.parse_args()
 
     decision = route_question(args.question)
-    print(f"path: {decision.path}  confidence: {decision.confidence}")
+    print(f"path: {decision.path}  query_type: {decision.query_type}  confidence: {decision.confidence}")
     print(f"entities: {decision.entities}")
     print(f"reasoning: {decision.reasoning}\n")
 
@@ -178,7 +287,13 @@ def _main() -> None:
 
     print(f"\n{len(result['graph_facts'])} graph fact(s):")
     for f in result["graph_facts"]:
-        print(f"  {f.source} -[{f.relation_type}]-> {f.target}   ({f.source_chunk_id})")
+        tag = f"  [{f.anchor}]" if getattr(f, "anchor", "") else ""
+        print(f"  {f.source} -[{f.relation_type}]-> {f.target}   ({f.source_chunk_id}){tag}")
+
+    if result["graph_aggregates"]:
+        print(f"\n{len(result['graph_aggregates'])} graph aggregate row(s):")
+        for a in result["graph_aggregates"]:
+            print(f"  {a.entity_name}: {a.relation_type} x{a.count}  -> {', '.join(a.targets[:8])}")
 
 
 if __name__ == "__main__":
