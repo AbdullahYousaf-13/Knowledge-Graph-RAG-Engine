@@ -1,0 +1,279 @@
+{
+  "accuracy": 0.963,
+  "n": 27,
+  "n_correct": 26,
+  "confusion": {
+    "both->both": 3,
+    "graph->graph": 2,
+    "out_of_scope->out_of_scope": 3,
+    "vector->both": 1,
+    "vector->vector": 18
+  },
+  "per_query": [
+    {
+      "id": "q001",
+      "question": "What are Apple's reportable operating segments?",
+      "expected_path": "vector",
+      "actual_path": "vector",
+      "correct": true,
+      "entities": [],
+      "reasoning": "A factual lookup of reportable operating segments as stated in the financial statement footnotes."
+    },
+    {
+      "id": "q002",
+      "question": "Who is Apple's independent registered public accounting firm, and since what year have they served?",
+      "expected_path": "vector",
+      "actual_path": "vector",
+      "correct": true,
+      "entities": [],
+      "reasoning": "The name of the independent registered public accounting firm and the year they were engaged are stated directly in the report's auditor section."
+    },
+    {
+      "id": "q003",
+      "question": "By what date was Apple required to comply with the EU Digital Markets Act?",
+      "expected_path": "vector",
+      "actual_path": "vector",
+      "correct": true,
+      "entities": [],
+      "reasoning": "A specific factual compliance date related to a regulation stated in the filing text; no multi-entity relationship traversal required."
+    },
+    {
+      "id": "q004",
+      "question": "What was Apple's effective tax rate in fiscal 2024?",
+      "expected_path": "vector",
+      "actual_path": "vector",
+      "correct": true,
+      "entities": [],
+      "reasoning": "The effective tax rate is a single financial figure stated in the tax footnote or financial statements, requiring only a text lookup."
+    },
+    {
+      "id": "q005",
+      "question": "How much common stock was Apple authorized to repurchase under the program announced in May 2024?",
+      "expected_path": "vector",
+      "actual_path": "vector",
+      "correct": true,
+      "entities": [],
+      "reasoning": "A specific financial figure related to a share repurchase authorization is a single fact easily retrieved from the filing text."
+    },
+    {
+      "id": "q006",
+      "question": "What were Apple's total net sales in fiscal 2023?",
+      "expected_path": "vector",
+      "actual_path": "vector",
+      "correct": true,
+      "entities": [],
+      "reasoning": "A single financial figure from the income statement, straightforwardly retrievable via text search."
+    },
+    {
+      "id": "q007",
+      "question": "What is the Epic Games lawsuit against Apple about?",
+      "expected_path": "both",
+      "actual_path": "both",
+      "correct": true,
+      "entities": [
+        "Apple",
+        "Epic Games"
+      ],
+      "reasoning": "Asks about a legal dispute between two specific entities, requiring the graph link for the lawsuit relationship and narrative detail from the text."
+    },
+    {
+      "id": "q008",
+      "question": "What did the European Commission's 2016 State Aid Decision require Ireland to do regarding Apple?",
+      "expected_path": "vector",
+      "actual_path": "vector",
+      "correct": true,
+      "entities": [],
+      "reasoning": "A specific legal and regulatory proceeding described in the disclosures, answerable via text lookup without traversing entity relationships."
+    },
+    {
+      "id": "q009",
+      "question": "What does Apple use the proceeds of its commercial paper program for?",
+      "expected_path": "vector",
+      "actual_path": "vector",
+      "correct": true,
+      "entities": [],
+      "reasoning": "A single financial policy fact regarding the use of commercial paper proceeds, answerable from the text describing debt and liquidity."
+    },
+    {
+      "id": "q010",
+      "question": "What was Apple's quarterly cash dividend per share as of the end of fiscal 2024?",
+      "expected_path": "vector",
+      "actual_path": "vector",
+      "correct": true,
+      "entities": [],
+      "reasoning": "A specific financial figure concerning dividends per share is a direct text or table lookup in the filing."
+    },
+    {
+      "id": "q011",
+      "question": "On what exchange is Apple's common stock traded and under what ticker symbol?",
+      "expected_path": "vector",
+      "actual_path": "vector",
+      "correct": true,
+      "entities": [],
+      "reasoning": "A basic factual lookup of the stock exchange and ticker symbol stated directly in the filing text."
+    },
+    {
+      "id": "q012",
+      "question": "What performance obligations does Apple identify when it sells devices like iPhone, Mac, and iPad?",
+      "expected_path": "vector",
+      "actual_path": "vector",
+      "correct": true,
+      "entities": [],
+      "reasoning": "Apple's performance obligations for hardware sales are standard accounting policies disclosed in the notes to consolidated financial statements, requiring a text chunk lookup rather than entity graph traversal."
+    },
+    {
+      "id": "q013",
+      "question": "What are all the product and service categories Apple breaks its net sales into?",
+      "expected_path": "vector",
+      "actual_path": "vector",
+      "correct": true,
+      "entities": [],
+      "reasoning": "Product and service net sales categories are listed as standard financial statement line items found directly in the text and tables of the filing."
+    },
+    {
+      "id": "q014",
+      "question": "Which subscription and payment services does Apple describe in the Business section of its 10-K?",
+      "expected_path": "vector",
+      "actual_path": "vector",
+      "correct": true,
+      "entities": [],
+      "reasoning": "A factual lookup of specific service offerings described within the narrative Business section of the filing."
+    },
+    {
+      "id": "q015",
+      "question": "What employee stock plans does Apple maintain for share-based compensation?",
+      "expected_path": "vector",
+      "actual_path": "vector",
+      "correct": true,
+      "entities": [],
+      "reasoning": "A description of employee stock plans and share-based compensation is a factual policy lookup answerable from the financial statement footnotes."
+    },
+    {
+      "id": "q016",
+      "question": "How did Apple's authorized share repurchase amount change between its 2023 and 2024 program announcements?",
+      "expected_path": "vector",
+      "actual_path": "vector",
+      "correct": true,
+      "entities": [],
+      "reasoning": "A factual lookup of specific numbers related to share repurchase programs across filing periods, found in the text or tables."
+    },
+    {
+      "id": "q017",
+      "question": "Why did Apple's effective tax rate rise sharply from fiscal 2023 to fiscal 2024?",
+      "expected_path": "vector",
+      "actual_path": "vector",
+      "correct": true,
+      "entities": [],
+      "reasoning": "The reasons for a change in the effective tax rate are typically explained in the income taxes footnote and MD&A narrative, making this a text lookup."
+    },
+    {
+      "id": "q018",
+      "question": "What manufacturing and component-supply risks does Apple face from relying on single-source and outsourcing partners?",
+      "expected_path": "vector",
+      "actual_path": "both",
+      "correct": false,
+      "entities": [
+        "Apple"
+      ],
+      "reasoning": "This question involves supplier entities linked to Apple and requires both the graph context of supply relationships and the narrative risk factors from the text."
+    },
+    {
+      "id": "q019",
+      "question": "What legal and regulatory matters relate specifically to Apple's App Store?",
+      "expected_path": "both",
+      "actual_path": "both",
+      "correct": true,
+      "entities": [
+        "Apple",
+        "App Store"
+      ],
+      "reasoning": "Identifying the specific legal and regulatory matters linked to Apple's App Store involves querying entity relationships as well as retrieving the descriptive narrative of those proceedings."
+    },
+    {
+      "id": "q020",
+      "question": "How did Apple's net sales trends differ between the Americas and Greater China in fiscal 2023?",
+      "expected_path": "vector",
+      "actual_path": "vector",
+      "correct": true,
+      "entities": [],
+      "reasoning": "Segment net sales trends and figures are financial statement line items, which can be retrieved directly from the text or tables without graph traversal."
+    },
+    {
+      "id": "q021",
+      "question": "What is the status of the EU Digital Markets Act noncompliance investigations against Apple?",
+      "expected_path": "vector",
+      "actual_path": "vector",
+      "correct": true,
+      "entities": [],
+      "reasoning": "The status of investigations is a factual legal disclosure contained within the filing's text, which can be retrieved directly via vector search."
+    },
+    {
+      "id": "q022",
+      "question": "How many iPhone units did Apple sell in fiscal 2024?",
+      "expected_path": "out_of_scope",
+      "actual_path": "out_of_scope",
+      "correct": true,
+      "entities": [],
+      "reasoning": "Apple does not disclose unit sales figures for iPhone or other products in its 10-K filings."
+    },
+    {
+      "id": "q023",
+      "question": "What is Apple's revenue guidance for fiscal 2026?",
+      "expected_path": "out_of_scope",
+      "actual_path": "out_of_scope",
+      "correct": true,
+      "entities": [],
+      "reasoning": "Forward-looking guidance for future fiscal years is not disclosed by Apple in its annual SEC 10-K filings."
+    },
+    {
+      "id": "q024",
+      "question": "How many physical retail stores does Microsoft operate?",
+      "expected_path": "out_of_scope",
+      "actual_path": "out_of_scope",
+      "correct": true,
+      "entities": [],
+      "reasoning": "Microsoft is not the subject of Apple's SEC 10-K filings."
+    },
+    {
+      "id": "q025",
+      "question": "How does the set of competitors Apple names in its fiscal 2023 filing compare with fiscal 2024?",
+      "expected_path": "graph",
+      "actual_path": "graph",
+      "correct": true,
+      "entities": [
+        "Apple"
+      ],
+      "reasoning": "Asks to compare competitor entities across two different fiscal years, which is best answered by checking the COMPETES_WITH relationships in the knowledge graph."
+    },
+    {
+      "id": "q026",
+      "question": "Which laws, regulations, and government bodies does Apple state it is subject to?",
+      "expected_path": "graph",
+      "actual_path": "graph",
+      "correct": true,
+      "entities": [
+        "Apple"
+      ],
+      "reasoning": "The question asks for an aggregation of all laws, regulations, and government bodies linked to Apple via SUBJECT_TO relationships."
+    },
+    {
+      "id": "q027",
+      "question": "What antitrust litigation has been brought against Apple over the App Store, and by whom?",
+      "expected_path": "both",
+      "actual_path": "both",
+      "correct": true,
+      "entities": [
+        "Apple"
+      ],
+      "reasoning": "Asks for specific legal entities that have brought litigation against Apple, requiring relationship tracking combined with narrative details on the App Store."
+    }
+  ],
+  "config": {
+    "timestamp_utc": "2026-09-01T07:12:14.493788+00:00",
+    "git_rev": "cbd0f17f9f5f14c79d8e3e4d2470a97c59c99184",
+    "model": "gemini-3.5-flash-lite",
+    "query_set": "data\\eval\\retrieval_queries.jsonl",
+    "query_set_sha1": "079ea803ec242bd89a4b37dadbbd811f78e21406",
+    "n_queries": 27
+  }
+}

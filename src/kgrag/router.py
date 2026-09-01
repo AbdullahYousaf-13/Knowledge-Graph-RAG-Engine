@@ -152,7 +152,10 @@ def _format_few_shot() -> str:
     return "\n".join(lines)
 
 
-ROUTER_PROMPT = """
+# Fixed instructions + worked examples -> system_instruction (stable across every call,
+# cacheable). Only the question varies, and it goes in `contents`.
+ROUTER_SYSTEM = (
+    """
 You are routing a user's question to the right retrieval system for a hybrid RAG \
 pipeline over Apple's SEC 10-K filings, fiscal years 2023, 2024, and 2025 only.
 
@@ -175,19 +178,21 @@ the question is ambiguous, could plausibly fit more than one path, or you are un
 whether the named entities actually exist as tracked entities. A caller may choose to \
 run more than one retrieval path when confidence is low, so an honest low score is \
 more useful than a falsely confident one.
-
-{few_shot}
-
-Question: {question}
 """.strip()
+    + "\n\n"
+    + _format_few_shot()
+)
+
+ROUTER_PROMPT = "Question: {question}"
 
 
 def route_question(question: str, *, client: genai.Client | None = None) -> RouteDecision:
     client = client or genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
     response = client.models.generate_content(
         model=MODEL_NAME,
-        contents=ROUTER_PROMPT.format(few_shot=_format_few_shot(), question=question),
+        contents=ROUTER_PROMPT.format(question=question),
         config={
+            "system_instruction": ROUTER_SYSTEM,
             "response_mime_type": "application/json",
             "response_schema": RouteDecision,
         },
