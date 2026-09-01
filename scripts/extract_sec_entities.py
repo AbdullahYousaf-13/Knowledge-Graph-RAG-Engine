@@ -63,7 +63,7 @@ OUTPUT_PATH = OUTPUT_DIR / "extractions.jsonl"
 PROGRESS_PATH = OUTPUT_DIR / "extractions_progress.json"
 FAILED_PATH = OUTPUT_DIR / "extractions_failed.jsonl"
 
-MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview")
+MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
 FILING_YEARS = {
     year.strip() for year in os.getenv("FILING_YEARS", "2023,2024,2025").split(",") if year.strip()
 }

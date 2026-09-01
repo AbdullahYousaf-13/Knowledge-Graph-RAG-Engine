@@ -20,7 +20,7 @@ from pydantic import BaseModel, Field
 
 from . import graph_retrieval, retrieval
 
-MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview")
+MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite")
 CONFIDENCE_THRESHOLD = float(os.getenv("ROUTER_CONFIDENCE_THRESHOLD", "0.6"))
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -253,7 +253,10 @@ def execute_route(decision: RouteDecision, question: str, *, k: int = 5, hops: i
     }
 
     if effective_path != "out_of_scope":
-        if effective_path in ("vector", "both"):
+        # The graph route also pulls passages: graph facts are terse one-liners, and the
+        # source text gives the synthesizer full context to ground on. So graph facts
+        # augment the passages rather than replacing them.
+        if effective_path in ("vector", "both", "graph"):
             result["vector_hits"] = retrieval.vector_search(question, k=k)
 
         if effective_path in ("graph", "both") and decision.entities:

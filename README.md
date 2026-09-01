@@ -3,51 +3,56 @@
 Hybrid knowledge-graph + vector RAG over SEC filings (Apple 10-Ks, FY2023–2025). It routes
 each question to graph retrieval (Neo4j), vector retrieval (pgvector), or both, merges the
 results into one answer, and validates every citation against a chunk that was actually
-retrieved. On a 53-question benchmark it scores **0.83 vs. 0.68** for a plain vector-RAG
-baseline — a **+15-point** gain that comes almost entirely from knowing when to refuse.
+retrieved. On a 53-question benchmark it scores **0.85 vs. 0.68** for a plain vector-RAG
+baseline — **+17 points**, with the gap concentrated on the questions a graph is for.
 
 ## Benchmark
 
 Hybrid answerer vs. the same answerer forced to a vector-only path. 53 hand-labeled
 questions, graded by a deterministic fact checklist (`scripts/benchmark.py`), no LLM judge.
+Model: `gemini-3.1-flash-lite` (free tier).
 
 | Question type | n | Vector-only | Hybrid | Δ |
 |---|--:|--:|--:|--:|
 | single-hop | 18 | 0.94 | 0.89 | −0.05 |
-| two-hop | 12 | 0.83 | 0.92 | +0.08 |
-| three-hop | 6 | 0.67 | 0.67 | ±0.00 |
-| aggregation | 9 | 0.56 | 0.56 | ±0.00 |
+| two-hop | 12 | 0.67 | 0.75 | +0.08 |
+| three-hop | 6 | 1.00 | 1.00 | ±0.00 |
+| aggregation (tally over relationships) | 9 | 0.56 | 0.67 | +0.11 |
 | out-of-scope (correctly refused) | 8 | 0.00 | 1.00 | **+1.00** |
-| **overall** | 53 | **0.68** | **0.83** | **+0.15** |
+| **overall** | 53 | **0.68** | **0.85** | **+0.17** |
 
-- **Latency** (model + retrieval, free-tier pacing excluded): vector-only p50 5.2 s / p95 7.6 s ·
-  hybrid p50 6.3 s / p95 13.2 s — the router and graph traversal add a hop.
+- **Latency** (model + retrieval, free-tier pacing excluded): vector-only p50 6.4 s / p95 9.4 s ·
+  hybrid p50 8.5 s / p95 19.8 s — the router call + graph traversal + a larger context block.
 - **Cost per 1,000 queries** (modelled at $0.10 / $0.40 per 1M tokens; **$0 actual** on the
-  Gemini free tier): vector-only $0.54 · hybrid $0.85.
+  free tier): vector-only $0.49 · hybrid **$1.25** — the hybrid uses ~2.8× the tokens
+  (graph facts + passages in one context).
 - **One-time graph ingestion**: ~225 Gemini extraction calls ($0 on the free tier), local
   CPU embeddings, free Neo4j + pgvector loads.
 
-Full data: [`data/eval/results/benchmark_20260901T094727Z.json`](data/eval/results/).
+Full data: [`data/eval/results/benchmark_20260901T114932Z.json`](data/eval/results/).
 
 ### Honest read
 
-**The graph does not measurably improve in-scope answer accuracy on this corpus.** On
-single/two/three-hop and aggregation questions the two systems are within one question of
-each other per stratum — noise at these sample sizes. The spec expects "a widening gap as
-hops increase"; we get near-parity.
+**The graph pays off on relationship questions and refusal, at a real cost in latency and
+tokens.** Where it helps, and how much:
 
-**The entire +15-point gain is refusal handling.** A plain vector RAG has no mechanism to
-decline — it answered all 8 out-of-scope questions confidently and wrongly (0/8). The
-hybrid system's router classifies them as out-of-scope and refuses (8/8).
+- **Out-of-scope refusal (+1.00).** A plain vector RAG has no mechanism to decline — it
+  answered all 8 unanswerable questions confidently and wrongly. The hybrid router
+  classifies them and refuses. This is the single largest contributor to the overall gap.
+- **Aggregation over relationships (+0.11).** Questions like "which laws is Apple subject
+  to?" or "in which regions does it operate?" — the graph's `SUBJECT_TO` / `LOCATED_IN`
+  tallies surface entities that a single retrieved passage misses (q026, q035).
+- **Multi-hop (+0.08 two-hop, ±0 three-hop).** Real but noisy at n = 6–12; the model is
+  not deterministic, so a stratum can swing by a question between runs. A second run put
+  two-hop at +0.17.
+- **Single-hop (−0.05).** One question, noise.
 
-Why the graph underperforms expectations: the corpus is one company, so the graph is thin —
-only ~4 of the original 27 questions genuinely need entity traversal, and `SUPPLIES` was
-extracted zero times and dropped from the ontology. The real accuracy ceiling is
-**retrieval** (recall@5 ≈ 0.5 with MiniLM-384 embeddings): most remaining misses on *both*
-systems are the retriever not surfacing the right chunk (the DMA compliance date, the
-contractual-obligations table, the risk-factor category headings). The graph even hurt once —
-q019, an App Store legal question the router sent to graph-only, returned commission-structure
-facts and missed the Epic Games narrative the vector path nailed.
+Where it doesn't help: the graph having a fact doesn't guarantee the answer uses it —
+q025 ("compare Apple's named competitors across years") routes to `graph`, the
+`COMPETES_WITH` edges are right there, and the model still answered "the filings don't
+name specific competitors." And retrieval recall (≈0.5 with MiniLM-384 embeddings) is the
+ceiling for *both* systems — the DMA compliance date, the contractual-obligations table
+and the risk-factor category headings miss on both.
 
 ## Architecture
 
@@ -83,47 +88,50 @@ flowchart TB
     MERGE --> OUT["answer_markdown + claims + resolved citations"]
 ```
 
+The `graph` route also runs `vector_search()` — graph facts are terse one-liners, so the
+source passages give the synthesizer full context. Graph facts *augment* the text.
+
 ## Design decisions
 
 - **Local embeddings, not an API.** `sentence-transformers` (`all-MiniLM-L6-v2`) on CPU —
   free, no quota. Trade-off: 384-dim is weaker than a paid model, and it's the accuracy
   ceiling here.
 - **The model never writes Cypher.** The router returns a `query_type` enum that selects a
-  fixed, parameterized Cypher template; the model only fills entity names. Security control
-  and reproducibility.
+  fixed, parameterized Cypher template; the model only fills entity names.
 - **Citations are validated, not trusted.** The answerer re-prompts while any claim cites a
-  non-retrieved chunk, then drops the claim. The answer can never cite a chunk that wasn't
-  retrieved (`tests/test_answer.py`).
-- **Deterministic grading, not an LLM judge.** The calibrated judge is a separate project; a
-  fact checklist is reproducible, and honest that it's strict on phrasing (every `wrong` /
-  `partial` was reviewed by hand).
+  non-retrieved chunk, then drops the claim (`tests/test_answer.py`).
+- **Deterministic grading, not an LLM judge.** A fact checklist is reproducible; every
+  `wrong` / `partial` was reviewed by hand (and two over-strict gold entries corrected).
 - **Baseline = the same answerer, forced to the vector path.** Isolates one variable —
   graph vs. no graph; synthesis and citation validation are byte-identical on both.
 
 ## What didn't work / limitations
 
-- **A single-company corpus makes a thin graph** — the graph doesn't move in-scope answer
-  accuracy (see "Honest read").
+- **Run-to-run variance is real** at these sample sizes — a hop-count stratum can move by a
+  question between runs on the same set. The overall +0.17 and the +1.00 on refusal are
+  stable; the two/three-hop deltas are not tight.
+- **The graph having a fact ≠ the answer using it** (q025 — competitor comparison routes to
+  the graph, the edges exist, the model still punts).
+- **Retrieval recall ≈ 0.5** is the ceiling for both systems (MiniLM-384, 2,600-char chunks).
 - **`section_name` was silently wrong for a whole section.** The chunker's heading list
   omitted ~13 of 22 10-K items, and the Item 7 regex required an apostrophe `extract_text`
-  strips — so all of MD&A was labeled "Item 3. Legal Proceedings". Caught only when Phase 4
-  printed it in a citation. Fixed in place (`scripts/fix_chunk_sections.py`), no re-chunk.
-- **The system doesn't push back on loaded questions.** "How much was Apple *unauthorized* to
-  repurchase?" gets the *authorized* amount — the retriever keyword-matches, the generator
-  over-helps. Presupposition checking is out of scope.
-- **`ef_search` tuning was a non-event** — swept 32→400 + exact ceiling, recall flat at this
-  corpus size. Documented, not hidden.
-- **Latency and cost are modelled**, not measured on a paid deployment.
-- **53 questions** is the low end of the spec's 50–100 — directional, not statistically tight.
+  strips — so all of MD&A was labeled "Item 3. Legal Proceedings". Fixed in place
+  (`scripts/fix_chunk_sections.py`), no re-chunk.
+- **The system doesn't push back on loaded questions** ("how much was Apple *unauthorized*
+  to repurchase?" → gets the authorized amount). Presupposition checking is out of scope.
+- **`ef_search` tuning was a non-event** — recall flat across 32→400 at this corpus size.
+- **Latency and cost are modelled**, not measured on a paid deployment. The project's
+  original model (`gemini-3.5-flash-lite`) was retired mid-build; switched to
+  `gemini-3.1-flash-lite`.
 
 ## Phases
 
 Built in order — see [`docs/PROJECT_GOAL_AND_PHASES.md`](docs/PROJECT_GOAL_AND_PHASES.md):
 
 1. Entities + relationships into Neo4j — closed ontology, two-tier entity resolution, `MERGE`.
-2. pgvector index over the same chunks — HNSW, recall@k measured (hit@5 0.90 on the Phase 2 set).
-3. Question router — few-shot → enum, parameterized Cypher templates. Routing accuracy
-   **96.3%** on the Phase 3 gate set (borderline cases), **53/53** on the full benchmark set.
+2. pgvector index over the same chunks — HNSW, recall@k measured.
+3. Question router — few-shot → enum, parameterized Cypher templates. Routes 18/18
+   multi-hop benchmark questions to graph or both; 96.3% on the Phase 3 gate set.
 4. Merge graph + vector → one grounded, cited answer; `POST /ask` with citation validation.
 5. This benchmark.
 
@@ -142,7 +150,7 @@ cp .env.example .env      # Neo4j + Supabase + Gemini credentials
 
 uvicorn kgrag.api:app
 curl -s -XPOST localhost:8000/ask -H 'content-type: application/json' \
-     -d '{"question":"What is the Epic Games lawsuit against Apple about?"}'
+     -d '{"question":"How is Apple connected to the European Union through regulation?"}'
 
 python -m kgrag.answer "Which regulations is Apple subject to?"     # CLI
 python -m kgrag.answer "..." --vector-only                           # baseline path

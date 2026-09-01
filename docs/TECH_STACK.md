@@ -14,7 +14,7 @@ build status see `LIVING_SPECS.md`.
 | Graph database | Neo4j on AuraDB free tier; Cypher, hand-written |
 | Vector database | PostgreSQL + `pgvector` on Supabase free tier; **HNSW** index |
 | Embeddings | `sentence-transformers` `all-MiniLM-L6-v2` (384-dim), local CPU |
-| LLM | Google Gemini API (free tier), structured JSON output |
+| LLM | Google Gemini API (free tier), `gemini-3.1-flash-lite`, structured JSON output. (Was `gemini-3.5-flash-lite`; Google retired it mid-build.) |
 | Orchestration | None — plain Python, official SDKs called directly. **No LangChain, anywhere.** |
 
 ## Phase 1–2 — built
@@ -44,7 +44,7 @@ build status see `LIVING_SPECS.md`.
 
 | Stage | Tool | Why |
 |---|---|---|
-| Benchmark | Plain Python (`scripts/benchmark.py`) | 53-question labeled set, hybrid vs. vector-only baseline, **deterministic fact-checklist grading** (no LLM judge — that's a separate project). Token counts from `usage_metadata` → modelled cost. No framework needed at this scale. |
+| Benchmark | Plain Python (`scripts/benchmark.py`) | 53-question labeled set, hybrid vs. vector-only baseline, **deterministic fact-checklist grading** (no LLM judge — that's a separate project). Token counts from `usage_metadata` → modelled cost. Per-call pacing + 429/5xx retry + checkpoint/resume for the flaky free tier. Result: hybrid 0.85 vs. 0.68. |
 
 **No LangChain, anywhere in this project.** A framework adds overhead without adding
 value for steps this project implements directly with a couple of SDK calls. Revisit only

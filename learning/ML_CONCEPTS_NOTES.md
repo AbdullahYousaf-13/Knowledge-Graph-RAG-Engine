@@ -85,7 +85,7 @@ Read it top to bottom: AI is the biggest umbrella, everything else is a smaller 
 
 **Analogy:** Your brother's analogy is the right one here — **think of an LLM as a brain.** It can think, reason, and generate language, but on its own it has no hands — it can't click buttons, fetch live data, or take actions in the world.
 
-**In this project:** **Gemini** (`gemini-3.5-flash-lite`) is your LLM. It reads a chunk of SEC filing text and reasons about it — "what entities are mentioned here, and how do they relate to each other" — and outputs its answer in a strict schema you defined.
+**In this project:** **Gemini** (`gemini-3.1-flash-lite`) is your LLM. It reads a chunk of SEC filing text and reasons about it — "what entities are mentioned here, and how do they relate to each other" — and outputs its answer in a strict schema you defined.
 
 ### 4.1 Tokens & Tokenization
 

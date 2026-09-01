@@ -59,8 +59,9 @@ phrasing.
 
 - **single-hop** — one chunk answers it. Core recall signal; if `recall@5` is weak here
   the index/embedding is broken.
-- **multi-hop** — needs ≥2 chunks, often across sections/years. Vector-only is expected
-  to underperform; that gap is what the Phase 5 hybrid comparison targets.
+- **multi-hop** — entity-connection reasoning: connection chains (A → B → C), comparisons
+  across entities, and aggregations over relationships. These are the questions BASWE
+  Phase 3 says to route to the graph.
 - **aggregation** — the full answer is spread over several chunks (a list), or is a tally of
   one entity's graph relationships.
 - **out-of-scope** — not answerable from the corpus. Scored on score distribution only

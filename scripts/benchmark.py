@@ -83,10 +83,13 @@ class _CountingModels:
             except Exception as exc:  # noqa: BLE001 - narrow check below
                 self._last_call = time.monotonic()
                 msg = str(exc)
-                if not ("429" in msg or "RESOURCE_EXHAUSTED" in msg) or attempt == MAX_429_RETRIES:
+                rate = "429" in msg or "RESOURCE_EXHAUSTED" in msg
+                transient = any(m in msg for m in ("500", "502", "503", "504", "UNAVAILABLE",
+                                                   "INTERNAL", "DEADLINE_EXCEEDED"))
+                if not (rate or transient) or attempt == MAX_429_RETRIES:
                     raise
-                backoff = max(_retry_delay(exc), 15.0 * attempt) + 1.0
-                print(f"    [429] attempt {attempt}/{MAX_429_RETRIES}, sleeping {backoff:.0f}s")
+                backoff = (max(_retry_delay(exc), 15.0 * attempt) if rate else 8.0 * attempt) + 1.0
+                print(f"    [{'429' if rate else '5xx'}] attempt {attempt}/{MAX_429_RETRIES}, sleeping {backoff:.0f}s")
                 self._sleep(backoff)
 
         usage = getattr(response, "usage_metadata", None)
@@ -204,28 +207,47 @@ def run_one(q: dict, *, cc: CountingClient, force_path: str | None) -> dict:
         "route": result.route["effective_path"],
         "n_claims": len(result.claims),
         "claims_removed": result.claims_removed,
-        "answer": result.answer_markdown[:600],
+        "answer": result.answer_markdown,
     }
+
+
+CHECKPOINT = RESULTS_DIR / "benchmark_progress.jsonl"
 
 
 def benchmark(queries: list[dict]) -> list[dict]:
     cc = CountingClient(genai.Client())
-    per_query: list[dict] = []
 
-    # Warm up connections + the embedding model so the first real measurement isn't
-    # inflated by cold-start cost.
-    print("  (warmup)")
-    try:
-        answer.answer_question("What day does Apple's fiscal year end on?", client=cc, force_path="vector")
-    except Exception as exc:
-        print(f"  warmup failed (continuing): {exc}")
-    for idx, q in enumerate(queries, 1):
-        for system, force_path in (("baseline", "vector"), ("hybrid", None)):
-            rec = run_one(q, cc=cc, force_path=force_path)
-            rec["system"] = system
-            per_query.append(rec)
-            print(f"  [{idx}/{len(queries)}] {q['id']:<6} {system:<9} {rec['verdict']:<8} "
-                  f"{rec['latency_ms']:>7.0f}ms  route={rec['route']}")
+    # Resume: the free tier is flaky (rate limits, 503s). Every completed (id, system)
+    # is appended to a checkpoint file and skipped on a re-run.
+    per_query: list[dict] = []
+    done: set[tuple[str, str]] = set()
+    if CHECKPOINT.exists():
+        for line in CHECKPOINT.read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                rec = json.loads(line)
+                per_query.append(rec)
+                done.add((rec["id"], rec["system"]))
+        print(f"  resuming: {len(done)} (question, system) pairs already done")
+
+    if not done:  # warm up connections + embedding model on a fresh run
+        print("  (warmup)")
+        try:
+            answer.answer_question("What day does Apple's fiscal year end on?", client=cc, force_path="vector")
+        except Exception as exc:
+            print(f"  warmup failed (continuing): {exc}")
+
+    with CHECKPOINT.open("a", encoding="utf-8") as ckpt:
+        for idx, q in enumerate(queries, 1):
+            for system, force_path in (("baseline", "vector"), ("hybrid", None)):
+                if (q["id"], system) in done:
+                    continue
+                rec = run_one(q, cc=cc, force_path=force_path)
+                rec["system"] = system
+                per_query.append(rec)
+                ckpt.write(json.dumps(rec) + "\n")
+                ckpt.flush()
+                print(f"  [{idx}/{len(queries)}] {q['id']:<6} {system:<9} {rec['verdict']:<8} "
+                      f"{rec['latency_ms']:>7.0f}ms  route={rec['route']}")
     return per_query
 
 
@@ -331,6 +353,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--validate", action="store_true", help="Only check hops + gold on every row.")
     parser.add_argument("--limit", type=int, default=None, help="Run only the first N questions.")
+    parser.add_argument("--fresh", action="store_true", help="Ignore any resume checkpoint and start over.")
     parser.add_argument("--out", default=None)
     args = parser.parse_args()
 
@@ -341,6 +364,8 @@ def main() -> None:
         return
     if args.limit:
         queries = queries[: args.limit]
+    if args.fresh and CHECKPOINT.exists():
+        CHECKPOINT.unlink()
 
     started = time.monotonic()
     per_query = benchmark(queries)
@@ -374,6 +399,8 @@ def main() -> None:
     out_json.parent.mkdir(parents=True, exist_ok=True)
     out_json.write_text(json.dumps(result, indent=2), encoding="utf-8")
     (RESULTS_DIR / "benchmark_table.md").write_text(table, encoding="utf-8")
+    if CHECKPOINT.exists():
+        CHECKPOINT.unlink()  # full run finished cleanly
     print(f"\nwrote {out_json.relative_to(BASE_DIR)} and benchmark_table.md")
 
 

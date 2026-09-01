@@ -14,8 +14,9 @@ supervisor-facing decision log see `WHAT_WE_DID_AND_WHY.md`._
   and FY2022 were also downloaded and chunked, then removed entirely once the scope was fixed.)
 - **Infra:** AuraDB (Neo4j) and Supabase (Postgres+pgvector) free tiers, live; credentials in
   local `.env` (gitignored).
-- **All five phases are complete.** Hybrid answerer benchmarks at 0.83 vs. 0.68 for a
-  vector-only baseline over 53 questions (the gain is refusal handling; see Phase 5 below).
+- **All five phases are complete.** Hybrid answerer benchmarks at **0.85 vs. 0.68** for a
+  vector-only baseline over 53 questions — the edge is on relationship questions, aggregation,
+  and out-of-scope refusal, at ~2.8× the token cost (see Phase 5 below).
 
 ## Known gotchas
 
@@ -182,30 +183,36 @@ supervisor-facing decision log see `WHAT_WE_DID_AND_WHY.md`._
 
 ## Phase 5 — complete (benchmark vs. the vector-only baseline)
 
-- **Question set:** `data/eval/retrieval_queries.jsonl` grew to **53** questions
-  (18 single-hop / 12 two-hop / 6 three-hop / 9 aggregation / 8 out-of-scope). Every row has
-  `hops` and a `gold` answer key (`{facts:[...]}` or `{must_refuse:true}`).
-  `relevant_chunk_ids` is now optional — the 21 benchmark-only rows have none and
-  `eval_retrieval.py` skips them from recall scoring (still 24 scored, MRR 0.725).
-- **`scripts/benchmark.py`:** runs the hybrid answerer and a vector-only baseline
-  (`answer_question(force_path="vector")` — skips router + graph, byte-identical synthesis +
-  citation validation). Grades by deterministic fact checklist (an in-scope answer that
-  hedges "does not contain…" can't score `correct`). Paces every Gemini call (~4.5 s,
-  free-tier 15 rpm) and retries 429s. Writes `benchmark_<UTC>.json` + `benchmark_table.md`.
-- **Result** (`benchmark_20260901T094727Z.json`): hybrid **0.83** vs. vector-only **0.68**
-  overall (+0.15). By stratum: single-hop 0.89 vs 0.94, two-hop 0.92 vs 0.83, three-hop
-  0.67 vs 0.67, aggregation 0.56 vs 0.56, **out-of-scope 1.00 vs 0.00**.
-- **Latency / cost:** hybrid p50 6.3 s / p95 13.2 s vs. vector-only p50 5.2 s / p95 7.6 s
-  (model + retrieval only). Modelled cost $0.85 vs $0.54 per 1k queries; $0 actual on the
+- **Question set:** `data/eval/retrieval_queries.jsonl` = **53** questions
+  (18 single-hop / 12 two-hop / 6 three-hop / 9 aggregation / 8 out-of-scope). The 18
+  multi-hop questions are **entity-connection questions** — connection chains
+  (`Apple —SUBJECT_TO→ DMA —LOCATED_IN→ EU`), comparisons across entities, and relationship
+  tallies — that route to graph/both (12 both, 6 graph). Every row has `hops` and a `gold`
+  answer key; `relevant_chunk_ids` is optional (11 benchmark-only rows have none,
+  `eval_retrieval.py` skips them; still 24 scored, MRR 0.725).
+- **`execute_route` change:** the `graph` route now also runs `vector_search()` — graph
+  facts are terse one-liners, so the source passages give the synthesizer full context
+  (this fixed q019, where `graph`-only previously lost the narrative). Graph facts augment
+  the text rather than replacing it; the `graph`/`both` enum stays as a logged signal.
+- **`scripts/benchmark.py`:** hybrid answerer vs. vector-only baseline
+  (`answer_question(force_path="vector")`). Deterministic fact-checklist grading (an
+  in-scope answer that hedges "does not contain…" can't score `correct`; two over-strict
+  gold entries were corrected during hand review). Paces every Gemini call (~4.5 s,
+  free-tier 15 rpm), retries 429s + 5xx, checkpoints to `benchmark_progress.jsonl` for
+  resume. Writes `benchmark_<UTC>.json` + `benchmark_table.md`.
+- **Result** (`benchmark_20260901T114932Z.json`, `gemini-3.1-flash-lite`): hybrid **0.85**
+  vs. vector-only **0.68** overall (+0.17). By stratum: single-hop 0.89 vs 0.94, two-hop
+  0.75 vs 0.67, three-hop 1.00 vs 1.00, aggregation 0.67 vs 0.56, **out-of-scope 1.00 vs 0.00**.
+- **Latency / cost:** hybrid p50 8.5 s / p95 19.8 s vs. vector-only p50 6.4 s / p95 9.4 s.
+  Modelled cost $1.25 vs $0.49 per 1k queries (hybrid ~2.8× the tokens); $0 actual on the
   free tier. One-time ingestion ~225 extraction calls, $0.
-- **Honest read:** the graph doesn't measurably move in-scope accuracy on a single-company
-  corpus (all in-scope strata within one question). The whole +0.15 is refusal — a plain
-  vector RAG has no way to decline (0/8). Real ceiling is retrieval recall (≈0.5): most
-  remaining misses on both systems are the retriever missing the chunk. The graph hurt once
-  (q019: App Store legal question routed to graph-only lost the narrative). Full write-up:
+- **Honest read:** the hybrid's edge is where a graph is for — refusal (+1.00; vector-only
+  can't decline, 0/8), aggregation over relationships (+0.11), and a real-but-noisy
+  multi-hop gain (+0.08 two-hop; a second run put it at +0.17). Single-hop parity. Caveats:
+  run-to-run variance is real at these strata sizes; the graph having a fact ≠ the answer
+  using it (q025); retrieval recall (≈0.5) is the shared ceiling. Full write-up:
   `WHAT_WE_DID_AND_WHY.md` §15 + README "what didn't work".
-- **Routing re-checked** on the full 53-question set: **53/53** (`routing_20260901T095510Z.json`).
-  The 96.3% Phase 3 figure was on the 27-query gate set (weighted toward borderline
-  `vector`/`both` cases); the 26 added benchmark questions are unambiguous.
+- **Model:** `gemini-3.5-flash-lite` (the project's original) was retired by Google
+  mid-build; switched to `gemini-3.1-flash-lite` in `.env` + the code defaults.
 
 **All five phases are complete.**

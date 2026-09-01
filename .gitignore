@@ -8,3 +8,4 @@ data/logs/
 *.egg-info/
 build/
 dist/
+data/eval/results/benchmark_progress.jsonl

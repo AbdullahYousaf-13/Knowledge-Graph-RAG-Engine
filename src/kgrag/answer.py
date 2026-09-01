@@ -22,7 +22,7 @@ from pydantic import BaseModel, Field
 
 from . import retrieval, router
 
-ANSWER_MODEL = os.getenv("GEMINI_ANSWER_MODEL", os.getenv("GEMINI_MODEL", "gemini-3-flash-preview"))
+ANSWER_MODEL = os.getenv("GEMINI_ANSWER_MODEL", os.getenv("GEMINI_MODEL", "gemini-3.1-flash-lite"))
 MAX_ANSWER_RETRIES = int(os.getenv("ANSWER_MAX_RETRIES", "2"))
 SNIPPET_CHARS = 240
 
