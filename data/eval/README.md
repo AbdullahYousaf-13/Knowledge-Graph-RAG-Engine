@@ -1,7 +1,11 @@
-# Retrieval evaluation set
+# Evaluation query set
 
-`retrieval_queries.jsonl` is a hand-labeled query set used to measure vector-retrieval
-quality (`scripts/eval_retrieval.py`) before any routing logic is built (Phase 2 gate).
+`retrieval_queries.jsonl` (53 hand-labeled questions) drives three evals:
+
+- `scripts/eval_retrieval.py` — vector-retrieval recall@k / hit@k / MRR (Phase 2 gate).
+- `scripts/eval_routing.py` — router accuracy vs. `expected_path` (Phase 3 gate).
+- `scripts/benchmark.py` — end-to-end answer accuracy, hybrid vs. vector-only baseline,
+  by hop count, plus latency and modelled cost (Phase 5).
 
 ## Schema
 
@@ -17,15 +21,29 @@ One JSON object per line:
 | `notes` | why these chunks — the rationale for the label |
 | `expected_path` | `vector` \| `graph` \| `both` \| `out_of_scope` — used by `scripts/eval_routing.py` (Phase 3 gate). Assigned by actually running the router's entity extraction + `kgrag.graph_retrieval.graph_search()` per query and checking whether real, relevant facts came back — not guessed from the question's wording or its `category`. On this corpus only ~4/27 questions genuinely need the graph (most filing content was never captured as a graph relationship to begin with, e.g. `SUPPLIES` has zero instances across the whole graph) — see `docs/WHAT_WE_DID_AND_WHY.md` for the full finding. |
 | `query_type` | (graph queries only) `connection` \| `multi_hop` \| `comparison` \| `aggregation` — which parameterized Cypher template `graph_search` should use. |
+| `hops` | `1` \| `2` \| `3` \| `"agg"` \| `0` — difficulty stratum for the Phase 5 benchmark. `0` = out-of-scope. `3` on this single-company corpus is mostly 3-year-trend questions (genuine graph 3-hop barely exists here). |
+| `gold` | the answer key for `scripts/benchmark.py`. Either `{"facts": [...]}` or `{"must_refuse": true}` (out-of-scope). |
 
 The corpus is 225 substantive chunks (Apple 10-K, 2023–2025), so chunk ids are stable.
 When a disclosure repeats across years (e.g. the segment list), list **every** recurring
 chunk id so recall@k credits retrieving any of them.
 
-## Ground-truth rule
+`relevant_chunk_ids` is **optional**: the ~21 benchmark-only questions (added in Phase 5)
+have `gold` but no verified chunk ids, and `eval_retrieval.py` skips them from scoring.
+
+## Ground-truth rules
 
 `relevant_chunk_ids` come from **reading the filing**, never from what the retriever
 returned. The system under test does not get to define its own answer key.
+
+`gold.facts` grading (`benchmark.py`): each list item is a required substring, or a
+nested list of alternatives (any one satisfies it). The answer text and the facts are
+normalised — lowercase, strip `$` and `,`, `%` → ` percent`, collapse whitespace — then
+each fact is checked as a substring. `correct` = all facts present; `partial` = some;
+`wrong` = none. `must_refuse` = `correct` iff the system returned the out-of-scope
+refusal. Keep facts short and distinctive (`"$110 billion"`, `"Ernst & Young"`,
+`"24.1%"`); review every `wrong`/`partial` by hand after a run — the grader is strict on
+phrasing.
 
 ## How to add a query
 
@@ -51,11 +69,13 @@ returned. The system under test does not get to define its own answer key.
 ## Running
 
 ```
-python scripts/eval_retrieval.py                 # report + write data/eval/results/retrieval_<UTC>.json
-python scripts/eval_retrieval.py --k 1,3,5,10
-python scripts/eval_retrieval.py --ef-search 200          # single HNSW ef_search override
-python scripts/eval_retrieval.py --ef-sweep 32,64,100,200,400  # sweep + exact-recall ceiling
+python scripts/eval_retrieval.py                          # recall@k report + retrieval_<UTC>.json
+python scripts/eval_retrieval.py --ef-sweep 32,64,100,200,400
+python scripts/eval_routing.py                            # routing accuracy + routing_<UTC>.json
+python scripts/benchmark.py --validate                    # check hops + gold on every row
+python scripts/benchmark.py --limit 6                     # smoke a few
+python scripts/benchmark.py                               # full run -> benchmark_<UTC>.json + benchmark_table.md
 ```
 
-Metrics on 27 queries × 225 chunks are **directional, not statistically tight** — use
-them to catch regressions and gross failures, not to fine-tune.
+53 questions × 225 chunks is **directional, not statistically tight** — use these numbers
+to catch regressions and gross failures, not to fine-tune.

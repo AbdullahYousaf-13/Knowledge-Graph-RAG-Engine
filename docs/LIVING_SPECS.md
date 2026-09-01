@@ -14,7 +14,8 @@ supervisor-facing decision log see `WHAT_WE_DID_AND_WHY.md`._
   and FY2022 were also downloaded and chunked, then removed entirely once the scope was fixed.)
 - **Infra:** AuraDB (Neo4j) and Supabase (Postgres+pgvector) free tiers, live; credentials in
   local `.env` (gitignored).
-- **Phases 1–4 are complete.** Next: Phase 5 (benchmark vs. vector-only baseline).
+- **All five phases are complete.** Hybrid answerer benchmarks at 0.83 vs. 0.68 for a
+  vector-only baseline over 53 questions (the gain is refusal handling; see Phase 5 below).
 
 ## Known gotchas
 
@@ -179,8 +180,32 @@ supervisor-facing decision log see `WHAT_WE_DID_AND_WHY.md`._
   on every response.
 - Deps added: `fastapi`, `uvicorn[standard]`.
 
-## Next: Phase 5 — benchmark the hybrid system against the vector-only baseline
+## Phase 5 — complete (benchmark vs. the vector-only baseline)
 
-- Stratified question set (single-hop / multi-hop / aggregation / out-of-scope), run both
-  the hybrid answerer and a vector-only baseline, report accuracy by hop count plus latency
-  and cost per query. Benchmark table goes at the top of the README.
+- **Question set:** `data/eval/retrieval_queries.jsonl` grew to **53** questions
+  (18 single-hop / 12 two-hop / 6 three-hop / 9 aggregation / 8 out-of-scope). Every row has
+  `hops` and a `gold` answer key (`{facts:[...]}` or `{must_refuse:true}`).
+  `relevant_chunk_ids` is now optional — the 21 benchmark-only rows have none and
+  `eval_retrieval.py` skips them from recall scoring (still 24 scored, MRR 0.725).
+- **`scripts/benchmark.py`:** runs the hybrid answerer and a vector-only baseline
+  (`answer_question(force_path="vector")` — skips router + graph, byte-identical synthesis +
+  citation validation). Grades by deterministic fact checklist (an in-scope answer that
+  hedges "does not contain…" can't score `correct`). Paces every Gemini call (~4.5 s,
+  free-tier 15 rpm) and retries 429s. Writes `benchmark_<UTC>.json` + `benchmark_table.md`.
+- **Result** (`benchmark_20260901T094727Z.json`): hybrid **0.83** vs. vector-only **0.68**
+  overall (+0.15). By stratum: single-hop 0.89 vs 0.94, two-hop 0.92 vs 0.83, three-hop
+  0.67 vs 0.67, aggregation 0.56 vs 0.56, **out-of-scope 1.00 vs 0.00**.
+- **Latency / cost:** hybrid p50 6.3 s / p95 13.2 s vs. vector-only p50 5.2 s / p95 7.6 s
+  (model + retrieval only). Modelled cost $0.85 vs $0.54 per 1k queries; $0 actual on the
+  free tier. One-time ingestion ~225 extraction calls, $0.
+- **Honest read:** the graph doesn't measurably move in-scope accuracy on a single-company
+  corpus (all in-scope strata within one question). The whole +0.15 is refusal — a plain
+  vector RAG has no way to decline (0/8). Real ceiling is retrieval recall (≈0.5): most
+  remaining misses on both systems are the retriever missing the chunk. The graph hurt once
+  (q019: App Store legal question routed to graph-only lost the narrative). Full write-up:
+  `WHAT_WE_DID_AND_WHY.md` §15 + README "what didn't work".
+- **Routing re-checked** on the full 53-question set: **53/53** (`routing_20260901T095510Z.json`).
+  The 96.3% Phase 3 figure was on the 27-query gate set (weighted toward borderline
+  `vector`/`both` cases); the 26 added benchmark questions are unambiguous.
+
+**All five phases are complete.**

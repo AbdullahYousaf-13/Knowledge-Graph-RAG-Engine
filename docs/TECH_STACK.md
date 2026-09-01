@@ -40,11 +40,11 @@ build status see `LIVING_SPECS.md`.
 | API | FastAPI, synchronous `POST /ask` (`src/kgrag/api.py`) | The "Done When" criterion — a queryable endpoint. Sync is fine for ~1 LLM call per request. |
 | Answer model | `GEMINI_ANSWER_MODEL` env, falls back to `GEMINI_MODEL` | Free tier; ~1 call/question so no quota concern. |
 
-## Phase 5 — planned
+## Phase 5 — built
 
 | Stage | Tool | Why |
 |---|---|---|
-| Benchmark | Plain Python | Labeled-set recall/accuracy comparison at this scale needs no framework. |
+| Benchmark | Plain Python (`scripts/benchmark.py`) | 53-question labeled set, hybrid vs. vector-only baseline, **deterministic fact-checklist grading** (no LLM judge — that's a separate project). Token counts from `usage_metadata` → modelled cost. No framework needed at this scale. |
 
 **No LangChain, anywhere in this project.** A framework adds overhead without adding
 value for steps this project implements directly with a couple of SDK calls. Revisit only

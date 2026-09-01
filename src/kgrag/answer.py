@@ -322,11 +322,33 @@ def _route_meta(result: dict) -> dict:
 
 
 def answer_question(
-    question: str, *, k: int = 5, hops: int = 2, client: genai.Client | None = None, conn=None
+    question: str,
+    *,
+    k: int = 5,
+    hops: int = 2,
+    force_path: str | None = None,
+    client: genai.Client | None = None,
+    conn=None,
 ) -> AnswerResult:
+    """Answer a question end to end.
+
+    ``force_path="vector"`` skips the router and the graph entirely (top-k chunks only) -
+    the vector-only baseline the Phase 5 benchmark compares the hybrid system against.
+    Everything downstream (evidence, synthesis, citation validation) is identical, so the
+    only variable is the retrieval path.
+    """
     client = client or genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-    decision = router.route_question(question, client=client)
+    if force_path == "vector":
+        decision = router.RouteDecision(
+            path="vector",
+            entities=[],
+            query_type="none",
+            confidence=1.0,
+            reasoning="forced vector-only baseline",
+        )
+    else:
+        decision = router.route_question(question, client=client)
     result = router.execute_route(decision, question, k=k, hops=hops)
     route_meta = _route_meta(result)
 
@@ -391,9 +413,13 @@ def _main() -> None:
     parser.add_argument("question")
     parser.add_argument("-k", type=int, default=5)
     parser.add_argument("--hops", type=int, default=2)
+    parser.add_argument("--vector-only", action="store_true", help="Force the vector-only baseline path.")
     args = parser.parse_args()
 
-    res = answer_question(args.question, k=args.k, hops=args.hops)
+    res = answer_question(
+        args.question, k=args.k, hops=args.hops,
+        force_path="vector" if args.vector_only else None,
+    )
     print(f"route: {res.route['path']} -> {res.route['effective_path']}  ({res.route['query_type']})\n")
     print(res.answer_markdown)
     if res.citations:

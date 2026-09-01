@@ -82,15 +82,19 @@ def validate(queries: list[dict], conn) -> bool:
             if rel:
                 print(f"  {qid}: out-of-scope query must have empty relevant_chunk_ids")
                 ok = False
-        else:
-            if not rel:
-                print(f"  {qid}: no relevant_chunk_ids")
-                ok = False
+        elif rel:
+            # A row with no relevant_chunk_ids is a benchmark-only question (Phase 5);
+            # it is skipped from retrieval scoring, not an error.
             for cid in rel:
                 if cid not in known:
                     print(f"  {qid}: relevant chunk {cid!r} not in {VECTOR_TABLE}")
                     ok = False
-    print(f"validate: {len(queries)} queries, {'OK' if ok else 'FAILED'}")
+    n_unscored = sum(
+        1 for q in queries
+        if q.get("category") != "out-of-scope" and not q.get("relevant_chunk_ids")
+    )
+    tail = f" ({n_unscored} unscored - no relevant_chunk_ids)" if n_unscored else ""
+    print(f"validate: {len(queries)} queries{tail}, {'OK' if ok else 'FAILED'}")
     return ok
 
 
@@ -127,9 +131,14 @@ def evaluate(queries: list[dict], ks: list[int], conn) -> dict:
                 rec[f"hit@{k}"] = 1.0 if rel & topk else 0.0
         per_query.append(rec)
 
-    # Aggregate over scored categories.
+    # Aggregate over scored categories. A row only counts as "scored" if it actually
+    # carries recall/RR figures - i.e. it had relevant_chunk_ids (benchmark-only rows
+    # without them are skipped, see validate()).
     all_ms = [r["query_ms"] for r in per_query if "query_ms" in r]
-    scored = [r for r in per_query if r["category"] in SCORED_CATEGORIES]
+    scored = [
+        r for r in per_query
+        if r["category"] in SCORED_CATEGORIES and "reciprocal_rank" in r
+    ]
     agg: dict = {"n_scored": len(scored), "by_category": {}}
     if all_ms:
         agg["mean_query_ms"] = round(sum(all_ms) / len(all_ms), 1)
@@ -151,10 +160,13 @@ def evaluate(queries: list[dict], ks: list[int], conn) -> dict:
             entry["mean_top1_score"] = round(sum(top1) / len(top1), 4) if top1 else None
             entry["mean_top5_floor_score"] = round(sum(top5) / len(top5), 4) if top5 else None
         else:
-            entry["MRR"] = round(sum(r["reciprocal_rank"] for r in rows) / len(rows), 4)
-            for k in ks:
-                entry[f"recall@{k}"] = round(sum(r[f"recall@{k}"] for r in rows) / len(rows), 4)
-                entry[f"hit@{k}"] = round(sum(r[f"hit@{k}"] for r in rows) / len(rows), 4)
+            graded = [r for r in rows if "reciprocal_rank" in r]
+            entry["n_scored"] = len(graded)
+            if graded:
+                entry["MRR"] = round(sum(r["reciprocal_rank"] for r in graded) / len(graded), 4)
+                for k in ks:
+                    entry[f"recall@{k}"] = round(sum(r[f"recall@{k}"] for r in graded) / len(graded), 4)
+                    entry[f"hit@{k}"] = round(sum(r[f"hit@{k}"] for r in graded) / len(graded), 4)
         agg["by_category"][cat] = entry
 
     return {"aggregate": agg, "per_query": per_query}
@@ -181,9 +193,9 @@ def print_report(result: dict, ks: list[int]) -> None:
     print(header)
     print("-" * len(header))
     for cat, e in agg["by_category"].items():
-        if cat == "out-of-scope":
+        if cat == "out-of-scope" or "MRR" not in e:
             continue
-        line = cat.ljust(14) + f"{e['n']:<4}"
+        line = cat.ljust(14) + f"{e.get('n_scored', e['n']):<4}"
         line += "  ".join(f"{e[f'recall@{k}']:.3f}".rjust(6) for k in ks) + "   "
         line += "  ".join(f"{e[f'hit@{k}']:.3f}".rjust(6) for k in ks) + f"   {e['MRR']:.3f}"
         print(line)
@@ -198,8 +210,10 @@ def print_report(result: dict, ks: list[int]) -> None:
         if r["category"] == "out-of-scope":
             print(f"  {r['id']:<6} OOS   top1={r['top_scores'][0] if r['top_scores'] else None}")
             continue
-        hit5 = r.get("hit@5", 0.0)
-        mark = "hit " if hit5 else "MISS"
+        if "reciprocal_rank" not in r:
+            print(f"  {r['id']:<6} SKIP  (benchmark-only, no relevant_chunk_ids)")
+            continue
+        mark = "hit " if r.get("hit@5", 0.0) else "MISS"
         print(f"  {r['id']:<6} {mark}  RR={r['reciprocal_rank']:.2f}  gold={r['relevant_chunk_ids']}  got={r['retrieved_chunk_ids'][:5]}")
 
 

@@ -71,13 +71,15 @@ See `LIVING_SPECS.md` for current data counts and build state, and `WHAT_WE_DID_
 
 ### Phase 5: Benchmark against plain vector RAG
 
-**Approach:** plain Python — no LangChain, no external benchmarking framework needed for a labeled-set recall/accuracy comparison at this scale.
+**Approach:** plain Python — no LangChain, no external benchmarking framework. `scripts/benchmark.py`.
 
-- Build a labeled question set with single-hop, multi-hop, aggregation, and out-of-scope questions.
-- Compare the hybrid system to a vector-only baseline.
-- Report accuracy by hop count, plus latency and cost per query.
-- Put the benchmark results at the top of the README.
+- Labeled question set with hop-count strata. — **Done.** `data/eval/retrieval_queries.jsonl` grew to 53 questions with `hops` (1/2/3/agg/0) and a `gold` answer key (fact checklist or `must_refuse`).
+- Compare the hybrid system to a vector-only baseline. — **Done.** `answer.answer_question()` vs. `answer.answer_question(force_path="vector")` (skips router + graph; identical synthesis + citation validation). Graded by a deterministic fact checklist — no LLM judge (the calibrated judge is a separate project).
+- Report accuracy by hop count, plus latency and cost per query. — **Done.** Hybrid **0.83** vs. vector-only **0.68** overall (+0.15). Latency: hybrid p50 6.3 s / p95 13.2 s vs. vector-only p50 5.2 s / p95 7.6 s. Modelled cost: $0.85 vs. $0.54 per 1k queries ($0 actual on the free tier). One-time ingestion: ~225 extraction calls, $0. `data/eval/results/benchmark_20260901T094727Z.json`.
+- Put the benchmark table at the top of the README. — **Done.**
+
+**Phase 5 is complete.** Honest read: **the graph doesn't measurably improve in-scope answer accuracy on this corpus** — single/two/three-hop and aggregation are all within one question per stratum. The whole +0.15 gain is refusal handling: a plain vector RAG can't decline (0/8 on out-of-scope), the hybrid router refuses all 8. The corpus is one company, so the graph is thin (only ~4/27 original questions truly need it); the real ceiling is retrieval recall (≈0.5). See the README "what didn't work" and `WHAT_WE_DID_AND_WHY.md` §15.
 
 ## Done When
 
-The project is complete when a FastAPI endpoint can answer questions with validated citations and the README shows a benchmark table proving the hybrid approach against a vector-only baseline on SEC filings.
+The project is complete when a FastAPI endpoint can answer questions with validated citations and the README shows a benchmark table proving the hybrid approach against a vector-only baseline on SEC filings. — **All five phases complete.**
