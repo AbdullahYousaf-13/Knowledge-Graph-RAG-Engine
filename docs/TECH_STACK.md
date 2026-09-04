@@ -46,6 +46,18 @@ build status see `LIVING_SPECS.md`.
 |---|---|---|
 | Benchmark | Plain Python (`scripts/benchmark.py`) | 53-question labeled set, hybrid vs. vector-only baseline, **deterministic fact-checklist grading** (no LLM judge — that's a separate project). Token counts from `usage_metadata` → modelled cost. Per-call pacing + 429/5xx retry + checkpoint/resume for the flaky free tier. Result: hybrid 0.85 vs. 0.68. |
 
+## Security
+
+| Concern | Approach |
+|---|---|
+| Cypher / SQL injection | All queries are fixed templates with bound parameters; the model emits enums + entity names, never query text. |
+| Prompt injection | System/user channel split, structured-output router, explicit instruction-vs-data lines, out-of-scope short-circuit (no LLM call), citation validation drops spoofed citations. `scripts/injection_probe.py` is the adversarial checklist. |
+| Input bounds | `question` ≤ 2000 chars + stripped; `k` 1–20, `hops` 1–3 (Pydantic); router `max_output_tokens`. |
+| Secrets | `os.getenv` + gitignored `.env`; catch-all handler logs exception *type* only (driver errors can carry the DSN). |
+| Perimeter (auth, rate-limit, TLS) | Out of scope — local demo. See `SECURITY.md` for the promote-to-exposed checklist. |
+
+Full threat model: [`SECURITY.md`](SECURITY.md).
+
 **No LangChain, anywhere in this project.** A framework adds overhead without adding
 value for steps this project implements directly with a couple of SDK calls. Revisit only
 if a specific piece of Phase 3/4 genuinely needs multi-step chain/agent orchestration

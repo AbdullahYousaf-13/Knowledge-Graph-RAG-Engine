@@ -155,7 +155,18 @@ curl -s -XPOST localhost:8000/ask -H 'content-type: application/json' \
 python -m kgrag.answer "Which regulations is Apple subject to?"     # CLI
 python -m kgrag.answer "..." --vector-only                           # baseline path
 python scripts/benchmark.py --limit 6                                # smoke the benchmark
+python scripts/injection_probe.py                                    # prompt-injection checklist
 ```
+
+## Security
+
+This is a **local-demo** service. Injection surfaces are sound — all Cypher and SQL use
+bound parameters, the model never writes query text, `.env` is gitignored — and the
+prompt pipeline has layered injection defenses (system/user channel split, structured
+router output, out-of-scope short-circuit, citation validation). Network-perimeter
+controls (auth, rate-limiting, TLS) are deliberately out of scope for local use.
+Full threat model, accepted-risk list, and the checklist to promote it to
+internet-exposed: [`docs/SECURITY.md`](docs/SECURITY.md).
 
 ## Docs
 
@@ -163,3 +174,4 @@ python scripts/benchmark.py --limit 6                                # smoke the
 - [`docs/TECH_STACK.md`](docs/TECH_STACK.md) — every tool and why
 - [`docs/LIVING_SPECS.md`](docs/LIVING_SPECS.md) — current build state
 - [`docs/WHAT_WE_DID_AND_WHY.md`](docs/WHAT_WE_DID_AND_WHY.md) — decision log
+- [`docs/SECURITY.md`](docs/SECURITY.md) — threat model + accepted risk

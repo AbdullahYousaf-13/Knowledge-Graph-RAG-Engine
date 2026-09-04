@@ -17,6 +17,11 @@ supervisor-facing decision log see `WHAT_WE_DID_AND_WHY.md`._
 - **All five phases are complete.** Hybrid answerer benchmarks at **0.85 vs. 0.68** for a
   vector-only baseline over 53 questions — the edge is on relationship questions, aggregation,
   and out-of-scope refusal, at ~2.8× the token cost (see Phase 5 below).
+- **Security:** deliberate review done — injection surfaces sound (bound params everywhere,
+  model never writes queries), layered prompt-injection defenses, request-input bounds,
+  generic error responses. Perimeter controls (auth/rate-limit/TLS) are accepted risk for
+  a local demo. Threat model + promote-to-exposed checklist: `SECURITY.md`.
+  Tests: `tests/test_security.py` (unit) + `scripts/injection_probe.py` (live-LLM).
 
 ## Known gotchas
 
