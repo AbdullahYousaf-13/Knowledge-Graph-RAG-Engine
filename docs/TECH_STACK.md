@@ -56,7 +56,7 @@ build status see `LIVING_SPECS.md`.
 | Secrets | `os.getenv` + gitignored `.env`; catch-all handler logs exception *type* only (driver errors can carry the DSN). |
 | Perimeter (auth, rate-limit, TLS) | Out of scope — local demo. See `SECURITY.md` for the promote-to-exposed checklist. |
 
-Full threat model: [`SECURITY.md`](SECURITY.md).
+What was weak, what we fixed, what's deferred: [`SECURITY.md`](SECURITY.md).
 
 **No LangChain, anywhere in this project.** A framework adds overhead without adding
 value for steps this project implements directly with a couple of SDK calls. Revisit only

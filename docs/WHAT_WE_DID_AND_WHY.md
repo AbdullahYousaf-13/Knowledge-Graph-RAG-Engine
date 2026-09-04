@@ -132,7 +132,7 @@ It costs it: hybrid uses **~2.8× the tokens** ($1.25 vs $0.49 per 1k modelled) 
 
 ## 16. Security posture: what was already sound, and the small hardening pass
 
-**What:** a deliberate security review of every surface, written up in `docs/SECURITY.md` (threat model + accepted-risk list), plus a focused set of code changes. The endpoint is a **local demo**, so network-perimeter controls (auth, rate-limiting, TLS) are documented as accepted risk with the one-line fix for each, not built.
+**What:** a deliberate security review of every surface, written up in `docs/SECURITY.md` (what was weak, what we fixed, what's deferred), plus a focused set of code changes. The endpoint is a **local demo**, so network-perimeter controls (auth, rate-limiting, TLS) are documented as accepted risk with the one-line fix for each, not built.
 
 **Already sound before the pass (no change needed):**
 - **Cypher injection — safe.** Every query in `graph_retrieval.py` is a fixed template with bound parameters (`$name`, `$entity_key`); the only interpolation is `int(hops)`. The model emits an enum + a list of entity names, never query text.

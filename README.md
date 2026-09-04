@@ -165,8 +165,8 @@ bound parameters, the model never writes query text, `.env` is gitignored — an
 prompt pipeline has layered injection defenses (system/user channel split, structured
 router output, out-of-scope short-circuit, citation validation). Network-perimeter
 controls (auth, rate-limiting, TLS) are deliberately out of scope for local use.
-Full threat model, accepted-risk list, and the checklist to promote it to
-internet-exposed: [`docs/SECURITY.md`](docs/SECURITY.md).
+What was weak, what we fixed, and what's left for "if this goes online":
+[`docs/SECURITY.md`](docs/SECURITY.md).
 
 ## Docs
 

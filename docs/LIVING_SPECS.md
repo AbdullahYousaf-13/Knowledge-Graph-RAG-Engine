@@ -20,7 +20,7 @@ supervisor-facing decision log see `WHAT_WE_DID_AND_WHY.md`._
 - **Security:** deliberate review done — injection surfaces sound (bound params everywhere,
   model never writes queries), layered prompt-injection defenses, request-input bounds,
   generic error responses. Perimeter controls (auth/rate-limit/TLS) are accepted risk for
-  a local demo. Threat model + promote-to-exposed checklist: `SECURITY.md`.
+  a local demo. What was weak / what we fixed / what's deferred: `SECURITY.md`.
   Tests: `tests/test_security.py` (unit) + `scripts/injection_probe.py` (live-LLM).
 
 ## Known gotchas
